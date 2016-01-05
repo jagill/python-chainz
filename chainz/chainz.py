@@ -2,7 +2,27 @@ from itertools import islice
 
 
 class Chain:
+    """
+    A Chain is a lightweight, functional, chaining wrapper around an iterable.
+
+    It provides methods such as `map` or `filter` that act lazily on the
+    iterable.  Each of these methods returns the chain object so that the
+    methods can be chained (hence the name).  It is similar in functionality
+    to itertoolz, but in an order the author finds easier to read, and without
+    the ambiguity of whether the iterable, or the other arguments, comes first.
+
+    It also includes "sink" methods, which consume the iterable.  For example,
+    `reduce` will reduce the iterable via a supplied binary function, and
+    `for_each` will apply a supplied function to each element.
+
+    It bears repeating that all operations are performed lazily.  In fact, if
+    no sink method is called, and if the chain is not consumed in some other
+    fashion (like you would any other iterable), nothing will actually happen.
+    The chain will be un-evaluated, and the iterable will not be consumed.
+    """
+
     def __init__(self, iterable):
+        """Create a chain with the suppled iterable."""
         self.iterable = iterable
         self._on_error = None
         self._skip = {}  # Unique, non-comparable element
@@ -42,7 +62,7 @@ class Chain:
         self.iterable = new_it(self.iterable)
 
     def on_error(self, f):
-        '''Sets the error handler for the chain.
+        """Sets the error handler for the chain.
 
         If an exception is thrown by a chained function, use the error function
         instead of terminating the iteration.  After the error is handled,
@@ -57,22 +77,22 @@ class Chain:
         form
         def f(exception, object):
             # do something
-        '''
+        """
         self._on_error = f
         return self
 
     # Mapping-type operations
     def map(self, f):
-        '''Map the iterator through f.'''
+        """Map the iterator through f."""
         self._wrap_iterator(f)
         return self
 
     def filter(self, f):
-        '''Filter the iterator through f.
+        """Filter the iterator through f.
 
         Only elements x such that f(x) is Truthy will pass through, the others
         will be dropped.
-        '''
+        """
         def filter_f(x):
             if f(x):
                 return x
@@ -81,11 +101,11 @@ class Chain:
         return self
 
     def omit(self, f):
-        '''Filter the iterator through f.
+        """Filter the iterator through f.
 
         Only elements x such that f(x) is Falsy will pass through, the others
         will be dropped.
-        '''
+        """
         def omit_f(x):
             if not f(x):
                 return x
@@ -94,12 +114,12 @@ class Chain:
         return self
 
     def do(self, f):
-        '''Pass all elements through f.
+        """Pass all elements through f.
 
         Unlike for_each, this is not a sink and does not consume the iteratable;
         it creates a new iterable that lazily applies f to each element.
         Note that f may modify the element.  The return value of f is ignored.
-        '''
+        """
         def do_f(x):
             f(x)
             return x
@@ -107,10 +127,10 @@ class Chain:
         return self
 
     def add_key(self, key, value):
-        '''Add a key `key` with value `value` to each object.
+        """Add a key `key` with value `value` to each object.
 
         Each object must implement dict methods, particularly `___getitem__`.
-        '''
+        """
         def do_f(x):
             x[key] = value
             return x
@@ -119,19 +139,19 @@ class Chain:
 
     # Control operations
     def slice(self, *args):
-        '''Slice the iterator.
+        """Slice the iterator.
 
         Arguments are the same as for the built-in slice object.  They are
         slice(end): slice first `end` elements
         slice(beg, end, [step]): start slice at `beg`, end at `end`, with step
             `step` if provided.
-        '''
+        """
         self.iterable = islice(self.iterable, *args)
         return self
 
     # Generator operations
     def map_gen(self, gen):
-        '''Applies a generator gen to each item, yielding the results sequentially.
+        """Applies a generator gen to each item, yielding the results sequentially.
 
         Example:
         def gen(x):
@@ -140,16 +160,16 @@ class Chain:
         chain = Chain(xrange(3)).map_gen(gen)
         print list(chain)
         # ['0a', '0b', '1a', '1b', '2a', '2b']
-        '''
+        """
         self._wrap_iterator_with_generator(gen)
         return self
 
     def flatten(self, strict=True):
-        '''Flattens the iterables in iterable.
+        """Flattens the iterables in iterable.
 
         If strict is True, raise an Exception for any non-iterables in iterable.
         If strict is False, pass them through.
-        '''
+        """
         def flatten_gen(x):
                 try:
                     for y in x:
@@ -165,21 +185,21 @@ class Chain:
 
     # Sinks
     def sink(self):
-        '''Consume the iterable; do nothing additional with the elements.
+        """Consume the iterable; do nothing additional with the elements.
 
         Note that this is a sink; it will entirely consume the iterable.
-        '''
+        """
         for x in self.iterable:
             pass
 
     def reduce(self, f, first=None):
-        '''Reduce the iterable by f, with optional first value.
+        """Reduce the iterable by f, with optional first value.
 
         Supplying first=None is the same as not supplying it.  If it is not
         supplied, used the first value f the iterable as the first value.
 
         Note that this is a sink; it entirely consumes the iterable.
-        '''
+        """
         result = _start = {}  # Unique, non-comparable element
         if first is not None:
             result = first
@@ -197,17 +217,17 @@ class Chain:
         return result
 
     def count(self):
-        '''Reduce an iterator it to a count.
+        """Reduce an iterator it to a count.
 
         Note that this is a sink; it entirely consumes the iterable.
-        '''
+        """
         return len(self.iterable)
 
     def for_each(self, f):
-        '''Consume the iterator by applying f to each element.
+        """Consume the iterator by applying f to each element.
 
         The return value of f is ignored.
         Note that this is a sink; it entirely consumes the iterable.
-        '''
+        """
         for x in self.iterable:
             f(x)
