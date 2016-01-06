@@ -174,6 +174,11 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(b), [0, 2, 0, 1, 2])
 
     # CONTROLS
+    def test_slice_none(self):
+        a = xrange(10)
+        b = Chain(a).slice(None)
+        self.assertEqual(len(list(b)), len(a))
+
     def test_slice_end(self):
         a = xrange(10)
         b = Chain(a).slice(4)
@@ -232,3 +237,19 @@ class TestChain(unittest.TestCase):
             res.append(x)
         Chain(xrange(3)).for_each(f)
         self.assertEqual(res, [0, 1, 2])
+
+    def test_for_each_error(self):
+        res = []
+        e = Exception('bad')
+
+        def err_f(ex, o):
+            self.assertEqual(ex, e)
+            self.assertEqual(o, 1)
+
+        def f(x):
+            if x == 1:
+                raise e
+            res.append(x)
+
+        Chain(xrange(3)).on_error(err_f).for_each(f)
+        self.assertEqual(res, [0, 2])

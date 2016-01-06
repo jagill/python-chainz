@@ -22,7 +22,7 @@ class Chain:
     """
 
     def __init__(self, iterable):
-        """Create a chain with the suppled iterable."""
+        """Create a chain with the supplied iterable."""
         self.iterable = iterable
         self._on_error = None
         self._skip = {}  # Unique, non-comparable element
@@ -129,10 +129,21 @@ class Chain:
     def add_key(self, key, value):
         """Add a key `key` with value `value` to each object.
 
-        Each object must implement dict methods, particularly `___getitem__`.
+        Each object must implement dict methods, particularly `__getitem__`.
         """
         def do_f(x):
             x[key] = value
+            return x
+        self._wrap_iterator(do_f)
+        return self
+
+    def drop_key(self, key):
+        """Drop the key `key` from each object.
+
+        Each object must implement dict methods, particularly `__delitem__`.
+        """
+        def do_f(x):
+            del x[key]
             return x
         self._wrap_iterator(do_f)
         return self
@@ -203,6 +214,7 @@ class Chain:
         result = _start = {}  # Unique, non-comparable element
         if first is not None:
             result = first
+
         for x in self.iterable:
             if result is _start:
                 result = x
@@ -230,4 +242,9 @@ class Chain:
         Note that this is a sink; it entirely consumes the iterable.
         """
         for x in self.iterable:
-            f(x)
+            try:
+                f(x)
+            except Exception as e:
+                if self._on_error is None:
+                    raise e
+                self._on_error(e, x)
