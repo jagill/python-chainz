@@ -215,8 +215,14 @@ class TestChain(unittest.TestCase):
         self.assertEqual(res, [0, 1, 2])
 
     def test_count(self):
-        ct = Chain(xrange(10**10)).count()
-        self.assertEqual(ct, 10**10)
+        n = 10**6
+        ct = Chain(xrange(n)).count()
+        self.assertEqual(ct, n)
+
+    def test_count_composite(self):
+        n = 10**6
+        ct = Chain(xrange(n)).slice(100, n - 100, 2).count()
+        self.assertEqual(ct, (n - 200) / 2)
 
     def test_reduce(self):
         res = Chain(xrange(4)).reduce(operator.add)

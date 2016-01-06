@@ -242,7 +242,10 @@ class Chain:
 
         Note that this is a sink; it entirely consumes the iterable.
         """
-        return len(self.iterable)
+        def _count(x, y):
+            return x + 1
+
+        return self.reduce(_count, 0)
 
     def for_each(self, f):
         """Consume the iterator by applying f to each element.
