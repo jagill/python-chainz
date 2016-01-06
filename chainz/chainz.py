@@ -87,6 +87,15 @@ class Chain:
         self._wrap_iterator(f)
         return self
 
+    def map_key(self, key, f):
+        """Map the value of a key through f."""
+        def fn(obj):
+            obj[key] = f(obj[key])
+            return obj
+
+        self._wrap_iterator(fn)
+        return self
+
     def filter(self, f):
         """Filter the iterator through f.
 

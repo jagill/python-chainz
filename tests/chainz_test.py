@@ -43,6 +43,17 @@ class TestChain(unittest.TestCase):
         with self.assertRaises(Exception):
             list(b)
 
+    def test_map_key(self):
+        def make_obj(x):
+            return dict(k=x)
+
+        b = Chain(xrange(3)).map(make_obj).map_key('k', lambda x: x*2)
+        self.assertEqual(list(b), [
+            {'k': 0},
+            {'k': 2},
+            {'k': 4},
+        ])
+
     def test_filter(self):
         a = xrange(4)
         b = Chain(a).filter(lambda x: x % 2)
