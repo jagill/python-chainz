@@ -1,0 +1,16 @@
+Help on package chainz:
+
+NAME
+    chainz - chainz is a lightweight module for chaining, functional operations on iterables.
+
+FILE
+    /Users/jag/dev/chainz/chainz/__init__.py
+
+DESCRIPTION
+    It includes:
+    chainz.Chain: A wrapper class for iterables with chaining, functional methods.
+
+PACKAGE CONTENTS
+    chainz
+
+

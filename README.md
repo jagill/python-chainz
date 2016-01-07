@@ -61,3 +61,9 @@ list(chain)
 # "1 caused exception: Exception('Bad')"
 # [0, 2]
 ```
+
+API
+---
+Please see the `docs/` directory for auto-generated (and thus up-to-date)
+documentation.  This is generated from the doc strings, so introspection
+can also be helpful (eg, `print Chain.reduce.__doc__`).

@@ -1,0 +1,132 @@
+Help on class Chain in chainz:
+
+chainz.Chain = class Chain
+ |  A Chain is a lightweight, functional, chaining wrapper around an iterable.
+ |  
+ |  It provides methods such as `map` or `filter` that act lazily on the
+ |  iterable.  Each of these methods returns the chain object so that the
+ |  methods can be chained (hence the name).  It is similar in functionality
+ |  to itertoolz, but in an order the author finds easier to read, and without
+ |  the ambiguity of whether the iterable, or the other arguments, comes first.
+ |  
+ |  It also includes "sink" methods, which consume the iterable.  For example,
+ |  `reduce` will reduce the iterable via a supplied binary function, and
+ |  `for_each` will apply a supplied function to each element.
+ |  
+ |  It bears repeating that all operations are performed lazily.  In fact, if
+ |  no sink method is called, and if the chain is not consumed in some other
+ |  fashion (like you would any other iterable), nothing will actually happen.
+ |  The chain will be un-evaluated, and the iterable will not be consumed.
+ |  
+ |  Methods defined here:
+ |  
+ |  __init__(self, iterable)
+ |      Create a chain with the supplied iterable.
+ |  
+ |  __iter__(self)
+ |      x.__iter__() <==> iter(x)
+ |  
+ |  add_key(self, key, value)
+ |      Add a key `key` with value `value` to each object.
+ |      
+ |      Each object must implement dict methods, particularly `__getitem__`.
+ |  
+ |  count(self)
+ |      Reduce an iterator it to a count.
+ |      
+ |      Note that this is a sink; it entirely consumes the iterable.
+ |  
+ |  do(self, f)
+ |      Pass all elements through f.
+ |      
+ |      Unlike for_each, this is not a sink and does not consume the iteratable;
+ |      it creates a new iterable that lazily applies f to each element.
+ |      Note that f may modify the element.  The return value of f is ignored.
+ |  
+ |  drop_key(self, key)
+ |      Drop the key `key` from each object.
+ |      
+ |      Each object must implement dict methods, particularly `__delitem__`.
+ |  
+ |  filter(self, f)
+ |      Filter the iterator through f.
+ |      
+ |      Only elements x such that f(x) is Truthy will pass through, the others
+ |      will be dropped.
+ |  
+ |  flatten(self, strict=True)
+ |      Flattens the iterables in iterable.
+ |      
+ |      If strict is True, raise an Exception for any non-iterables in iterable.
+ |      If strict is False, pass them through.
+ |  
+ |  for_each(self, f)
+ |      Consume the iterator by applying f to each element.
+ |      
+ |      The return value of f is ignored.
+ |      Note that this is a sink; it entirely consumes the iterable.
+ |  
+ |  map(self, f)
+ |      Map the iterator through f.
+ |  
+ |  map_gen(self, gen)
+ |      Applies a generator gen to each item, yielding the results sequentially.
+ |      
+ |      Example:
+ |      def gen(x):
+ |          for letter in ['a', 'b']:
+ |              yield '%s%s' % (x, letter)
+ |      chain = Chain(xrange(3)).map_gen(gen)
+ |      print list(chain)
+ |      # ['0a', '0b', '1a', '1b', '2a', '2b']
+ |  
+ |  map_key(self, key, f)
+ |      Map the value of a key through f.
+ |  
+ |  next(self)
+ |      x.next() -> the next value, or raise StopIteration
+ |  
+ |  omit(self, f)
+ |      Filter the iterator through f.
+ |      
+ |      Only elements x such that f(x) is Falsy will pass through, the others
+ |      will be dropped.
+ |  
+ |  on_error(self, f)
+ |      Sets the error handler for the chain.
+ |      
+ |      If an exception is thrown by a chained function, use the error function
+ |      instead of terminating the iteration.  After the error is handled,
+ |      continue iteration on the next item.
+ |      
+ |      If this is never called, an exception will halt iteration and be raised
+ |      normally.  If this is called multiple times, the successive calls will
+ |      replace (not append to) the previous error handler.
+ |      
+ |      The function f receives two arguments, the thrown exception, and the
+ |      object that caused the exception.  E.g, the function should be of the
+ |      form
+ |      def f(exception, object):
+ |          # do something
+ |  
+ |  reduce(self, f, first=None)
+ |      Reduce the iterable by f, with optional first value.
+ |      
+ |      Supplying first=None is the same as not supplying it.  If it is not
+ |      supplied, use the first value f the iterable as the first value.
+ |      
+ |      Note that this is a sink; it entirely consumes the iterable.
+ |  
+ |  sink(self)
+ |      Consume the iterable; do nothing additional with the elements.
+ |      
+ |      Note that this is a sink; it will entirely consume the iterable.
+ |  
+ |  slice(self, *args)
+ |      Slice the iterator.
+ |      
+ |      Arguments are the same as for the built-in slice object.  They are
+ |      slice(end): slice first `end` elements
+ |      slice(beg, end, [step]): start slice at `beg`, end at `end`, with step
+ |          `step` if provided.
+

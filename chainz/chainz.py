@@ -28,9 +28,11 @@ class Chain:
         self._skip = {}  # Unique, non-comparable element
 
     def __iter__(self):
+        """x.__iter__() <==> iter(x)"""
         return self.iterable.__iter__()
 
     def next(self):
+        """x.next() -> the next value, or raise StopIteration"""
         return self.iterable.next()
 
     def _wrap_iterator(self, f):
@@ -216,7 +218,7 @@ class Chain:
         """Reduce the iterable by f, with optional first value.
 
         Supplying first=None is the same as not supplying it.  If it is not
-        supplied, used the first value f the iterable as the first value.
+        supplied, use the first value f the iterable as the first value.
 
         Note that this is a sink; it entirely consumes the iterable.
         """
