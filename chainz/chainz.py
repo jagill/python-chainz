@@ -137,6 +137,7 @@ class Chain:
         self._wrap_iterator(do_f)
         return self
 
+    # KEY OPERATIONS
     def set_key(self, key, value):
         """Set a key `key` with value `value` to each object.
 
