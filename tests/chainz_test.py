@@ -105,10 +105,47 @@ class TestChain(unittest.TestCase):
         list(Chain(xrange(3)).do(f).on_error(err_f))
         self.assertEqual(res, [0, 2])
 
-    def test_add_key(self):
+    def test_set_key(self):
         objs = [{}, {'a': 'x'}, {'b': 'y'}]
-        res = list(Chain(objs).add_key('a', 'z'))
+        res = list(Chain(objs).set_key('a', 'z'))
         desired_result = [{'a': 'z'}, {'a': 'z'}, {'a': 'z', 'b': 'y'}]
+        self.assertEqual(res, desired_result)
+
+    def test_set_key_fn(self):
+        objs = [{'a': 4}, {'a': 2}, {'a': 1}]
+        res = list(Chain(objs).set_key('b', lambda x: x['a'] + 2))
+        desired_result = [
+            {'a': 4, 'b': 6},
+            {'a': 2, 'b': 4},
+            {'a': 1, 'b': 3}
+        ]
+        self.assertEqual(res, desired_result)
+
+    def test_keep_keys_single(self):
+        objs = [
+            dict(a=1, b=2),
+            dict(a=4, b=5),
+        ]
+        res = list(Chain(objs).keep_keys('a'))
+        desired_result = [{'a': 1}, {'a': 4}]
+        self.assertEqual(res, desired_result)
+
+    def test_keep_keys_multiple(self):
+        objs = [
+            dict(a=1, b=2, c=3),
+            dict(a=4, b=5, c=6),
+        ]
+        res = list(Chain(objs).keep_keys(['a', 'b']))
+        desired_result = [{'a': 1, 'b': 2}, {'a': 4, 'b': 5}]
+        self.assertEqual(res, desired_result)
+
+    def test_keep_keys_missing(self):
+        objs = [
+            dict(a=1, b=2),
+            dict(a=4, b=5),
+        ]
+        res = list(Chain(objs).keep_keys(['a', 'c']))
+        desired_result = [{'a': 1}, {'a': 4}]
         self.assertEqual(res, desired_result)
 
     # GENERATOR OPERATIONS

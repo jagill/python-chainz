@@ -137,13 +137,21 @@ class Chain:
         self._wrap_iterator(do_f)
         return self
 
-    def add_key(self, key, value):
-        """Add a key `key` with value `value` to each object.
+    def set_key(self, key, value):
+        """Set a key `key` with value `value` to each object.
 
-        Each object must implement dict methods, particularly `__getitem__`.
+        If `value` is a function, call it on the object and use that value
+        instead.
+
+        Each object must implement dict methods, particularly `__setitem__`.
         """
+        if not hasattr(value, '__call__'):
+            value_fn = lambda x: value
+        else:
+            value_fn = value
+
         def do_f(x):
-            x[key] = value
+            x[key] = value_fn(x)
             return x
         self._wrap_iterator(do_f)
         return self
@@ -156,6 +164,30 @@ class Chain:
         def do_f(x):
             del x[key]
             return x
+        self._wrap_iterator(do_f)
+        return self
+
+    def keep_keys(self, keys):
+        """Keep only the provided keys in each object.
+
+        keys can be a list, tuple, or string.  If the latter, keep only the
+        specified key.  Otherwise, keep all the keys in the list/tuple.
+
+        If a key is specified that does not exist in the input object, it is
+        not added.
+
+        Note that this creates a new object; it does not modify the old object.
+        """
+        if isinstance(keys, basestring):
+            keys = [keys]
+
+        def do_f(x):
+            new = {}
+            for k in keys:
+                if k in x:
+                    new[k] = x[k]
+            return new
+
         self._wrap_iterator(do_f)
         return self
 
