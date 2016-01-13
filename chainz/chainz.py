@@ -199,14 +199,14 @@ class Chain:
         return self
 
     # Generator operations
-    def map_gen(self, gen):
+    def mapcat(self, gen):
         """Applies a generator gen to each item, yielding the results sequentially.
 
         Example:
         def gen(x):
             for letter in ['a', 'b']:
                 yield '%s%s' % (x, letter)
-        chain = Chain(xrange(3)).map_gen(gen)
+        chain = Chain(xrange(3)).mapcat(gen)
         print list(chain)
         # ['0a', '0b', '1a', '1b', '2a', '2b']
         """

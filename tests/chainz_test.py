@@ -149,14 +149,14 @@ class TestChain(unittest.TestCase):
         self.assertEqual(res, desired_result)
 
     # GENERATOR OPERATIONS
-    def test_map_gen(self):
+    def test_mapcat(self):
         def gen(x):
             for letter in ['a', 'b']:
                 yield '%s%s' % (x, letter)
-        b = Chain(xrange(3)).map_gen(gen)
+        b = Chain(xrange(3)).mapcat(gen)
         self.assertEqual(list(b), ['0a', '0b', '1a', '1b', '2a', '2b'])
 
-    def test_map_gen_error(self):
+    def test_mapcat_error(self):
         e = Exception('bad')
 
         def err_f(ex, o):
@@ -171,10 +171,10 @@ class TestChain(unittest.TestCase):
                 else:
                     yield out
 
-        b = Chain(xrange(3)).map_gen(gen).on_error(err_f)
+        b = Chain(xrange(3)).mapcat(gen).on_error(err_f)
         self.assertEqual(list(b), ['0a', '0b', '2a', '2b'])
 
-    def test_map_gen_error_2(self):
+    def test_mapcat_error_2(self):
         e = Exception('bad')
 
         def err_f(ex, o):
@@ -189,7 +189,7 @@ class TestChain(unittest.TestCase):
                 else:
                     yield out
 
-        b = Chain(xrange(3)).map_gen(gen).on_error(err_f)
+        b = Chain(xrange(3)).mapcat(gen).on_error(err_f)
         self.assertEqual(list(b), ['0a', '0b', '1a', '2a', '2b'])
 
     def test_flatten(self):
