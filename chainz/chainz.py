@@ -35,33 +35,27 @@ class Chain:
         """x.next() -> the next value, or raise StopIteration"""
         return self.iterable.next()
 
-    def _wrap_iterator(self, f):
-        def new_it(old_it):
-            for x in old_it:
-                try:
-                    out = f(x)
+    def _wrap_iterable(self, f, iterable):
+        for x in iterable:
+            try:
+                out = f(x)
+                if out is not self._skip:
+                    yield out
+            except Exception as e:
+                if self._on_error is None:
+                    raise
+                self._on_error(e, x)
+
+    def _wrap_iterable_with_gen(self, gen, iterable):
+        for x in iterable:
+            try:
+                for out in gen(x):
                     if out is not self._skip:
                         yield out
-                except Exception as e:
-                    if self._on_error is None:
-                        raise e
-                    self._on_error(e, x)
-
-        self.iterable = new_it(self.iterable)
-
-    def _wrap_iterator_with_generator(self, gen):
-        def new_it(old_it):
-            for x in old_it:
-                try:
-                    for out in gen(x):
-                        if out is not self._skip:
-                            yield out
-                except Exception as e:
-                    if self._on_error is None:
-                        raise e
-                    self._on_error(e, x)
-
-        self.iterable = new_it(self.iterable)
+            except Exception as e:
+                if self._on_error is None:
+                    raise
+                self._on_error(e, x)
 
     def on_error(self, f):
         """Sets the error handler for the chain.
@@ -86,7 +80,7 @@ class Chain:
     # Mapping-type operations
     def map(self, f):
         """Map the iterator through f."""
-        self._wrap_iterator(f)
+        self.iterable = self._wrap_iterable(f, self.iterable)
         return self
 
     def map_key(self, key, f):
@@ -95,7 +89,7 @@ class Chain:
             obj[key] = f(obj[key])
             return obj
 
-        self._wrap_iterator(fn)
+        self.iterable = self._wrap_iterable(fn, self.iterable)
         return self
 
     def filter(self, f):
@@ -108,7 +102,7 @@ class Chain:
             if f(x):
                 return x
             return self._skip
-        self._wrap_iterator(filter_f)
+        self.iterable = self._wrap_iterable(filter_f, self.iterable)
         return self
 
     def omit(self, f):
@@ -121,7 +115,7 @@ class Chain:
             if not f(x):
                 return x
             return self._skip
-        self._wrap_iterator(omit_f)
+        self.iterable = self._wrap_iterable(omit_f, self.iterable)
         return self
 
     def do(self, f):
@@ -134,7 +128,7 @@ class Chain:
         def do_f(x):
             f(x)
             return x
-        self._wrap_iterator(do_f)
+        self.iterable = self._wrap_iterable(do_f, self.iterable)
         return self
 
     # KEY OPERATIONS
@@ -154,7 +148,7 @@ class Chain:
         def do_f(x):
             x[key] = value_fn(x)
             return x
-        self._wrap_iterator(do_f)
+        self.iterable = self._wrap_iterable(do_f, self.iterable)
         return self
 
     def drop_key(self, key):
@@ -165,7 +159,7 @@ class Chain:
         def do_f(x):
             del x[key]
             return x
-        self._wrap_iterator(do_f)
+        self.iterable = self._wrap_iterable(do_f, self.iterable)
         return self
 
     def keep_keys(self, keys):
@@ -182,14 +176,14 @@ class Chain:
         if isinstance(keys, basestring):
             keys = [keys]
 
-        def do_f(x):
+        def keep_keys(x):
             new = {}
             for k in keys:
                 if k in x:
                     new[k] = x[k]
             return new
 
-        self._wrap_iterator(do_f)
+        self.iterable = self._wrap_iterable(keep_keys, self.iterable)
         return self
 
     # Control operations
@@ -216,7 +210,7 @@ class Chain:
         print list(chain)
         # ['0a', '0b', '1a', '1b', '2a', '2b']
         """
-        self._wrap_iterator_with_generator(gen)
+        self.iterable = self._wrap_iterable_with_gen(gen, self.iterable)
         return self
 
     def flatten(self, strict=True):
@@ -229,13 +223,13 @@ class Chain:
                 try:
                     for y in x:
                         yield y
-                except TypeError as e:
+                except TypeError:
                     if strict:
-                        raise e
+                        raise
                     else:
                         yield x
 
-        self._wrap_iterator_with_generator(flatten_gen)
+        self.iterable = self._wrap_iterable_with_gen(flatten_gen, self.iterable)
         return self
 
     # Sinks
@@ -255,19 +249,20 @@ class Chain:
 
         Note that this is a sink; it entirely consumes the iterable.
         """
-        result = _start = {}  # Unique, non-comparable element
         if first is not None:
             result = first
+        else:
+            try:
+                result = self.iterable.__iter__().next()
+            except StopIteration:
+                result = None
 
         for x in self.iterable:
-            if result is _start:
-                result = x
-                continue
             try:
                 result = f(result, x)
             except Exception as e:
                 if self._on_error is None:
-                    raise e
+                    raise
                 self._on_error(e, x)
 
         return result
@@ -288,10 +283,7 @@ class Chain:
         The return value of f is ignored.
         Note that this is a sink; it entirely consumes the iterable.
         """
-        for x in self.iterable:
-            try:
-                f(x)
-            except Exception as e:
-                if self._on_error is None:
-                    raise e
-                self._on_error(e, x)
+        def _for_each(res, x):
+            f(x)
+
+        self.reduce(_for_each, 0)
