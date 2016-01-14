@@ -1,4 +1,4 @@
-from itertools import islice
+from itertools import islice, tee
 
 
 class Chain:
@@ -33,7 +33,7 @@ class Chain:
 
     def next(self):
         """x.next() -> the next value, or raise StopIteration"""
-        return self.iterable.next()
+        return self.iterable.__iter__().next()
 
     def _wrap_iterable(self, f, iterable):
         for x in iterable:
@@ -287,3 +287,53 @@ class Chain:
             f(x)
 
         self.reduce(_for_each, 0)
+
+    # Multiple chain operations
+    def copy(self):
+        """Make a copy of this chain.
+
+        This chain and the copy can be iterated independently.
+        """
+        self.iterable, it = tee(self.iterable, 2)
+        return Chain(it)
+
+    def merge_on_key(self, key, other):
+        self.iterable = _merge_on_key(key, self.iterable, other)
+        return self
+
+
+def _merge_on_key(key, a, b):
+    a_store = {}
+    b_store = {}
+    a_iter = a.__iter__()
+    b_iter = b.__iter__()
+    a_active = True
+    b_active = True
+    while a_active or b_active:
+        if a_active:
+            try:
+                x = a_iter.next()
+                print 'A iter', x
+                if x[key] in b_store:
+                    y = b_store.pop(x[key])
+                    x.update(y)
+                    print 'A Yielding', x
+                    yield x
+                else:
+                    a_store[x[key]] = x
+            except StopIteration:
+                a_active = False
+
+        if b_active:
+            try:
+                y = b_iter.next()
+                print 'B iter', y
+                if y[key] in a_store:
+                    x = a_store.pop(y[key])
+                    x.update(y)
+                    print 'B Yielding', x
+                    yield x
+                else:
+                    b_store[y[key]] = y
+            except StopIteration:
+                b_active = False

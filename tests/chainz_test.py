@@ -9,6 +9,29 @@ class TestChain(unittest.TestCase):
         b = Chain(a)
         self.assertEqual(list(b), [0, 1, 2])
 
+    def test_iter(self):
+        a = Chain(xrange(2))
+        it = a.__iter__()
+        self.assertEqual(it.next(), 0)
+        self.assertEqual(it.next(), 1)
+        try:
+            it.next()
+        except StopIteration:
+            pass
+        else:
+            self.fail()
+
+    # def test_next(self):
+    #     a = Chain(xrange(2))
+    #     self.assertEqual(a.next(), 0)
+    #     self.assertEqual(a.next(), 1)
+    #     try:
+    #         a.next()
+    #     except StopIteration:
+    #         pass
+    #     else:
+    #         self.fail()
+    #
     # MAPPING TYPES
     def test_map(self):
         a = xrange(4)
@@ -307,3 +330,45 @@ class TestChain(unittest.TestCase):
 
         Chain(xrange(3)).on_error(err_f).for_each(f)
         self.assertEqual(res, [0, 2])
+
+    # Multiple Chain operations
+    def test_copy(self):
+        a = Chain(xrange(3))
+        b = a.copy()
+        a.map(lambda x: 2*x)
+
+        self.assertEqual(list(a), [0, 2, 4])
+        self.assertEqual(list(b), [0, 1, 2])
+
+    def test_copy_after_map(self):
+        a = Chain(xrange(3)).map(lambda x: 2*x)
+        b = a.copy()
+        a.map(lambda x: 3*x)
+
+        self.assertEqual(list(a), [0, 6, 12])
+        self.assertEqual(list(b), [0, 2, 4])
+
+    def test_merge_on_key(self):
+        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(xrange(4)).map(lambda x: {'a': x, 'c': 'y%d' % x})
+        a.merge_on_key('a', b)
+        desired_result = [
+            {'a': 0, 'b': 'z0', 'c': 'y0'},
+            {'a': 1, 'b': 'z1', 'c': 'y1'},
+            {'a': 2, 'b': 'z2', 'c': 'y2'},
+            {'a': 3, 'b': 'z3', 'c': 'y3'},
+        ]
+        self.assertEqual(list(a), desired_result)
+
+    def test_merge_on_key_phased(self):
+        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(xrange(4)).map(lambda x: {'a': 3-x, 'c': 'y%d' % x})
+        a.merge_on_key('a', b)
+        desired_result = [
+            {'a': 0, 'b': 'z0', 'c': 'y3'},
+            {'a': 1, 'b': 'z1', 'c': 'y2'},
+            {'a': 2, 'b': 'z2', 'c': 'y1'},
+            {'a': 3, 'b': 'z3', 'c': 'y0'},
+        ]
+        actual_result = sorted(list(a), key=lambda o: o['a'])
+        self.assertEqual(actual_result, desired_result)
