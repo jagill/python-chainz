@@ -144,6 +144,16 @@ class TestChain(unittest.TestCase):
         ]
         self.assertEqual(res, desired_result)
 
+    def test_drop_key(self):
+        objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1, 'b': 3}]
+        res = list(Chain(objs).drop_key('b'))
+        desired_result = [
+            {'a': 4},
+            {'a': 2},
+            {'a': 1}
+        ]
+        self.assertEqual(res, desired_result)
+
     def test_keep_keys_single(self):
         objs = [
             dict(a=1, b=2),
