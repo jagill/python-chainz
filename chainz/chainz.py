@@ -84,9 +84,16 @@ class Chain:
         return self
 
     def map_key(self, key, f):
-        """Map the value of a key through f."""
+        """Map the value of a key through f.
+
+        If key is a tuple or list, apply all values through the same f.
+        """
+        if isinstance(key, basestring):
+            key = (key,)
+
         def fn(obj):
-            obj[key] = f(obj[key])
+            for k in key:
+                obj[k] = f(obj[k])
             return obj
 
         self.iterable = self._wrap_iterable(fn, self.iterable)

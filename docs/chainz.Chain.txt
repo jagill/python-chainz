@@ -26,10 +26,10 @@ chainz.Chain = class Chain
  |  __iter__(self)
  |      x.__iter__() <==> iter(x)
  |  
- |  add_key(self, key, value)
- |      Add a key `key` with value `value` to each object.
+ |  copy(self)
+ |      Make a copy of this chain.
  |      
- |      Each object must implement dict methods, particularly `__getitem__`.
+ |      This chain and the copy can be iterated independently.
  |  
  |  count(self)
  |      Reduce an iterator it to a count.
@@ -66,22 +66,37 @@ chainz.Chain = class Chain
  |      The return value of f is ignored.
  |      Note that this is a sink; it entirely consumes the iterable.
  |  
+ |  keep_keys(self, keys)
+ |      Keep only the provided keys in each object.
+ |      
+ |      keys can be a list, tuple, or string.  If the latter, keep only the
+ |      specified key.  Otherwise, keep all the keys in the list/tuple.
+ |      
+ |      If a key is specified that does not exist in the input object, it is
+ |      not added.
+ |      
+ |      Note that this creates a new object; it does not modify the old object.
+ |  
  |  map(self, f)
  |      Map the iterator through f.
  |  
- |  map_gen(self, gen)
+ |  map_key(self, key, f)
+ |      Map the value of a key through f.
+ |      
+ |      If key is a tuple or list, apply all values through the same f.
+ |  
+ |  mapcat(self, gen)
  |      Applies a generator gen to each item, yielding the results sequentially.
  |      
  |      Example:
  |      def gen(x):
  |          for letter in ['a', 'b']:
  |              yield '%s%s' % (x, letter)
- |      chain = Chain(xrange(3)).map_gen(gen)
+ |      chain = Chain(xrange(3)).mapcat(gen)
  |      print list(chain)
  |      # ['0a', '0b', '1a', '1b', '2a', '2b']
  |  
- |  map_key(self, key, f)
- |      Map the value of a key through f.
+ |  merge_on_key(self, key, other)
  |  
  |  next(self)
  |      x.next() -> the next value, or raise StopIteration
@@ -116,6 +131,14 @@ chainz.Chain = class Chain
  |      supplied, use the first value f the iterable as the first value.
  |      
  |      Note that this is a sink; it entirely consumes the iterable.
+ |  
+ |  set_key(self, key, value)
+ |      Set a key `key` with value `value` to each object.
+ |      
+ |      If `value` is a function, call it on the object and use that value
+ |      instead.
+ |      
+ |      Each object must implement dict methods, particularly `__setitem__`.
  |  
  |  sink(self)
  |      Consume the iterable; do nothing additional with the elements.

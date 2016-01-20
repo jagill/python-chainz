@@ -77,6 +77,28 @@ class TestChain(unittest.TestCase):
             {'k': 4},
         ])
 
+    def test_map_key_tuple(self):
+        def make_obj(x):
+            return dict(k=x, kk=x+1)
+
+        b = Chain(xrange(3)).map(make_obj).map_key(('k', 'kk'), lambda x: x*2)
+        self.assertEqual(list(b), [
+            {'k': 0, 'kk': 2},
+            {'k': 2, 'kk': 4},
+            {'k': 4, 'kk': 6},
+        ])
+
+    def test_map_key_list(self):
+        def make_obj(x):
+            return dict(k=x, kk=x+1)
+
+        b = Chain(xrange(3)).map(make_obj).map_key(['k', 'kk'], lambda x: x*2)
+        self.assertEqual(list(b), [
+            {'k': 0, 'kk': 2},
+            {'k': 2, 'kk': 4},
+            {'k': 4, 'kk': 6},
+        ])
+
     def test_filter(self):
         a = xrange(4)
         b = Chain(a).filter(lambda x: x % 2)
