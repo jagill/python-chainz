@@ -169,6 +169,22 @@ class Chain:
         self.iterable = self._wrap_iterable(do_f, self.iterable)
         return self
 
+    def rename_key(self, old_key, new_key, strict=True):
+        """Rename old_key to new_key.
+
+        If strict=True, throw an error if the object does not have old_key.
+        If strict=False, ignore such objects.
+        """
+        def rename_key(x):
+            try:
+                x[new_key] = x.pop(old_key)
+            except KeyError:
+                if strict:
+                    raise
+            return x
+        self.iterable = self._wrap_iterable(rename_key, self.iterable)
+        return self
+
     def keep_keys(self, keys):
         """Keep only the provided keys in each object.
 
@@ -304,7 +320,7 @@ class Chain:
         self.iterable, it = tee(self.iterable, 2)
         return Chain(it)
 
-    def merge_on_key(self, key, other):
+    def join_on_key(self, key, other):
         """Merge other iterable into this chain, on shared key.
 
         This assumes that key is unique in both iterables.
@@ -319,11 +335,18 @@ class Chain:
         case (no matching objects) it will consume and store
         in memory each realized iterable.
         """
-        self.iterable = _merge_on_key(key, self.iterable, other)
+        self.iterable = join_on_key(key, self.iterable, other)
         return self
 
 
-def _merge_on_key(key, a, b):
+def join_on_key(key, a, b):
+    """Join two iterables on a shared key.
+
+    This will merge the object in a and the object in b that have
+    the same value for key.  It will drop an unpaired objects.  It
+    assumes the values for key are unique in each of a and b.
+    For keys shared between a and b, the b value will be used.
+    """
     a_store = {}
     b_store = {}
     a_iter = a.__iter__()
@@ -334,6 +357,7 @@ def _merge_on_key(key, a, b):
         if a_active:
             try:
                 x = a_iter.next()
+                x = dict(x)  # Copy so as not to modify x
                 if x[key] in b_store:
                     y = b_store.pop(x[key])
                     x.update(y)

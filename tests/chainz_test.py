@@ -176,6 +176,32 @@ class TestChain(unittest.TestCase):
         ]
         self.assertEqual(res, desired_result)
 
+    def test_rename_key(self):
+        objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1, 'b': 3}]
+        res = list(Chain(objs).rename_key('b', 'c'))
+        desired_result = [
+            {'a': 4, 'c': 1},
+            {'a': 2, 'c': 2},
+            {'a': 1, 'c': 3}
+        ]
+        self.assertEqual(res, desired_result)
+
+    def test_rename_key_strict(self):
+        objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1}]
+        with self.assertRaises(KeyError) as cm:
+            list(Chain(objs).rename_key('b', 'c'))
+        self.assertEqual(cm.exception.message, 'b')
+
+    def test_rename_key_not_strict(self):
+        objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1}]
+        res = list(Chain(objs).rename_key('b', 'c', strict=False))
+        desired_result = [
+            {'a': 4, 'c': 1},
+            {'a': 2, 'c': 2},
+            {'a': 1}
+        ]
+        self.assertEqual(res, desired_result)
+
     def test_keep_keys_single(self):
         objs = [
             dict(a=1, b=2),
@@ -380,10 +406,10 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(a), [0, 6, 12])
         self.assertEqual(list(b), [0, 2, 4])
 
-    def test_merge_on_key(self):
+    def test_join_on_key(self):
         a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
         b = Chain(xrange(4)).map(lambda x: {'a': x, 'c': 'y%d' % x})
-        a.merge_on_key('a', b)
+        a.join_on_key('a', b)
         desired_result = [
             {'a': 0, 'b': 'z0', 'c': 'y0'},
             {'a': 1, 'b': 'z1', 'c': 'y1'},
@@ -392,10 +418,10 @@ class TestChain(unittest.TestCase):
         ]
         self.assertEqual(list(a), desired_result)
 
-    def test_merge_on_key_phased(self):
+    def test_join_on_key_phased(self):
         a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
         b = Chain(xrange(4)).map(lambda x: {'a': 3-x, 'c': 'y%d' % x})
-        a.merge_on_key('a', b)
+        a.join_on_key('a', b)
         desired_result = [
             {'a': 0, 'b': 'z0', 'c': 'y3'},
             {'a': 1, 'b': 'z1', 'c': 'y2'},
@@ -405,10 +431,10 @@ class TestChain(unittest.TestCase):
         actual_result = sorted(list(a), key=lambda o: o['a'])
         self.assertEqual(actual_result, desired_result)
 
-    def test_merge_on_key_offset(self):
+    def test_join_on_key_offset(self):
         a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
         b = Chain(xrange(2, 6)).map(lambda x: {'a': x, 'c': 'y%d' % x})
-        a.merge_on_key('a', b)
+        a.join_on_key('a', b)
         desired_result = [
             {'a': 2, 'b': 'z2', 'c': 'y2'},
             {'a': 3, 'b': 'z3', 'c': 'y3'},
