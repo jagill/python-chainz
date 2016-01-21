@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='chainz',
-      version='0.5',
+      version='0.6',
       description='Lightweight chaining functional methods for iterables',
       long_description=readme(),
       keywords='iterable generators functional map filter reduce',

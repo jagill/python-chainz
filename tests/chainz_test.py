@@ -404,3 +404,14 @@ class TestChain(unittest.TestCase):
         ]
         actual_result = sorted(list(a), key=lambda o: o['a'])
         self.assertEqual(actual_result, desired_result)
+
+    def test_merge_on_key_offset(self):
+        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(xrange(2, 6)).map(lambda x: {'a': x, 'c': 'y%d' % x})
+        a.merge_on_key('a', b)
+        desired_result = [
+            {'a': 2, 'b': 'z2', 'c': 'y2'},
+            {'a': 3, 'b': 'z3', 'c': 'y3'},
+        ]
+        actual_result = sorted(list(a), key=lambda o: o['a'])
+        self.assertEqual(actual_result, desired_result)

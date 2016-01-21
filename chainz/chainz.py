@@ -305,6 +305,20 @@ class Chain:
         return Chain(it)
 
     def merge_on_key(self, key, other):
+        """Merge other iterable into this chain, on shared key.
+
+        This assumes that key is unique in both iterables.
+        It will yield an object merging the object for the key
+        from each iterable.  It will yield in the order that
+        it completes each.  It will drop all objects that
+        don't have a mate.
+
+        Note that this stores the unpaired objects, so it can
+        potentially use up a lot of memory.  It will consume
+        from each queue until it has a match, so in the worst
+        case (no matching objects) it will consume and store
+        in memory each realized iterable.
+        """
         self.iterable = _merge_on_key(key, self.iterable, other)
         return self
 
@@ -320,11 +334,9 @@ def _merge_on_key(key, a, b):
         if a_active:
             try:
                 x = a_iter.next()
-                print 'A iter', x
                 if x[key] in b_store:
                     y = b_store.pop(x[key])
                     x.update(y)
-                    print 'A Yielding', x
                     yield x
                 else:
                     a_store[x[key]] = x
@@ -334,11 +346,9 @@ def _merge_on_key(key, a, b):
         if b_active:
             try:
                 y = b_iter.next()
-                print 'B iter', y
                 if y[key] in a_store:
                     x = a_store.pop(y[key])
                     x.update(y)
-                    print 'B Yielding', x
                     yield x
                 else:
                     b_store[y[key]] = y
