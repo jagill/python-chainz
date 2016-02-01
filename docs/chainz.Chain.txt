@@ -66,6 +66,21 @@ chainz.Chain = class Chain
  |      The return value of f is ignored.
  |      Note that this is a sink; it entirely consumes the iterable.
  |  
+ |  join_on_key(self, key, other)
+ |      Merge other iterable into this chain, on shared key.
+ |      
+ |      This assumes that key is unique in both iterables.
+ |      It will yield an object merging the object for the key
+ |      from each iterable.  It will yield in the order that
+ |      it completes each.  It will drop all objects that
+ |      don't have a mate.
+ |      
+ |      Note that this stores the unpaired objects, so it can
+ |      potentially use up a lot of memory.  It will consume
+ |      from each queue until it has a match, so in the worst
+ |      case (no matching objects) it will consume and store
+ |      in memory each realized iterable.
+ |  
  |  keep_keys(self, keys)
  |      Keep only the provided keys in each object.
  |      
@@ -95,8 +110,6 @@ chainz.Chain = class Chain
  |      chain = Chain(xrange(3)).mapcat(gen)
  |      print list(chain)
  |      # ['0a', '0b', '1a', '1b', '2a', '2b']
- |  
- |  merge_on_key(self, key, other)
  |  
  |  next(self)
  |      x.next() -> the next value, or raise StopIteration
@@ -132,6 +145,12 @@ chainz.Chain = class Chain
  |      
  |      Note that this is a sink; it entirely consumes the iterable.
  |  
+ |  rename_key(self, old_key, new_key, strict=True)
+ |      Rename old_key to new_key.
+ |      
+ |      If strict=True, throw an error if the object does not have old_key.
+ |      If strict=False, ignore such objects.
+ |  
  |  set_key(self, key, value)
  |      Set a key `key` with value `value` to each object.
  |      
@@ -152,4 +171,20 @@ chainz.Chain = class Chain
  |      slice(end): slice first `end` elements
  |      slice(beg, end, [step]): start slice at `beg`, end at `end`, with step
  |          `step` if provided.
+ |  
+ |  transform(self, trans)
+ |      Pass the iterator through the transform f.
+ |      
+ |      This is a lower-level method.  A transform does not get each individual
+ |      object, rather it gets the original iterator.  It must return an
+ |      iterator.  For example,
+ |      def f(in_iterator):
+ |          with open('filename', 'w') as output:
+ |              for x in in_iterator:
+ |                  output.write(x)
+ |                  yield x
+ |      
+ |      This will keep the output open throughout the iteration.
+ |      Note that the transform is responsible for calling on_error, if
+ |      appropriate.  Please see the examples in the above functions.
 

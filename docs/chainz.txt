@@ -9,8 +9,11 @@ FILE
 DESCRIPTION
     It includes:
     chainz.Chain: A wrapper class for iterables with chaining, functional methods.
+    chainz.utils: A set of helper functions that can be used with Chain.
 
 PACKAGE CONTENTS
+    chain
     chainz
+    utils
 
 
