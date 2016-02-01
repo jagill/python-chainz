@@ -255,6 +255,25 @@ class Chain:
         self.iterable = self._wrap_iterable_with_gen(flatten_gen, self.iterable)
         return self
 
+    def transform(self, trans):
+        """Pass the iterator through the transform f.
+
+        This is a lower-level method.  A transform does not get each individual
+        object, rather it gets the original iterator.  It must return an
+        iterator.  For example,
+        def f(in_iterator):
+            with open('filename', 'w') as output:
+                for x in in_iterator:
+                    output.write(x)
+                    yield x
+
+        This will keep the output open throughout the iteration.
+        Note that the transform is responsible for calling on_error, if
+        appropriate.  Please see the examples in the above functions.
+        """
+        self.iterable = trans(self.iterable)
+        return self
+
     # Sinks
     def sink(self):
         """Consume the iterable; do nothing additional with the elements.

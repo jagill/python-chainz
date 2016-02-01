@@ -302,6 +302,15 @@ class TestChain(unittest.TestCase):
         b = Chain(xrange(4)).on_error(err_f).map(f).flatten(strict=False)
         self.assertEqual(list(b), [0, 2, 0, 1, 2])
 
+    def test_transform(self):
+        def t(in_iterator):
+            for x in in_iterator:
+                if x % 2 == 0:
+                    yield x
+
+        a = Chain(xrange(5)).transform(t)
+        self.assertEqual(list(a), [0, 2, 4])
+
     # CONTROLS
     def test_slice_none(self):
         a = xrange(10)
