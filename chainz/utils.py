@@ -3,6 +3,7 @@ A set of utility functions for chainz.
 
 These help with common tasks like reading a file, searching a directory, etc.
 """
+import codecs
 
 
 def counter(callback):
@@ -26,12 +27,12 @@ def counter(callback):
     return _counter
 
 
-def read_file_lines(filepath):
+def read_file(filepath):
     """Iterates over a file, line by line.
 
     This generator will yield each line in turn, without the linebreak.
     """
-    with open(filepath, 'r') as f:
+    with codecs.open(filepath, 'r', encoding='utf-8') as f:
         for line in f:
             # FIXME: Do more general line ending test.
             if line[-1] == '\n':
@@ -41,8 +42,9 @@ def read_file_lines(filepath):
 
 def read_jsonl_file(filepath):
     """Iterates over a jsonl file, yielding the JSON objects."""
+    # XXX Need to use encoding?
     import json
-    with open(filepath, 'r') as f:
+    with codecs.open(filepath, 'r', encoding='utf-8') as f:
         for line in f:
             yield json.loads(line)
 
@@ -53,7 +55,7 @@ def read_csv_file(filepath, dialect=None):
     The dialect argument is supplied to the csv reader.
     """
     import csv
-    with open(filepath, 'r') as f:
+    with codecs.open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.reader(f, dialect=dialect)
         for obj in reader:
             yield obj
@@ -66,7 +68,7 @@ def read_csv_dict_file(filepath, dialect=None):
     that. The dialect argument is supplied to the csv reader.
     """
     import csv
-    with open(filepath, 'r') as f:
+    with codecs.open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f, dialect=dialect)
         for obj in reader:
             yield obj
@@ -87,12 +89,11 @@ def walk_leaf_dirs(root_dir):
     """
     import os
     for base_dir, dirs, filenames in os.walk(root_dir):
-        print 'in %s found dirs %s' % (base_dir, dirs)
         if len(dirs) == 0:
             yield base_dir
 
 
-def write_lines_to_filepath(filepath, append=False):
+def write_file(filepath, append=False):
     """A transform that writes the incoming objects, one per line, to
     the filepath.
 
@@ -104,13 +105,14 @@ def write_lines_to_filepath(filepath, append=False):
     def write_lines_to_filepath(in_iterator):
         with open(filepath, mode) as output:
             for x in in_iterator:
+                # FIXME: Use os-aware line endings.
                 output.write(x + '\n')
                 yield x
 
     return write_lines_to_filepath
 
 
-def write_json_lines_to_filepath(filepath, append=False):
+def write_jsonl_file(filepath, append=False):
     """A transform that writes the incoming objects as JSON objects, one per
     line, to the filepath.
 

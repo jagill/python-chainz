@@ -21,9 +21,9 @@ class TestChain(unittest.TestCase):
             .sink()
         self.assertEqual(l, [4, 2])
 
-    def test_read_file_by_line(self):
+    def test_read_file(self):
         filename = os.path.join(base_dir, 'data', 'textdat.txt')
-        line_it = utils.read_file_lines(filename)
+        line_it = utils.read_file(filename)
         self.assertEqual(list(line_it), ['a', 'b', 'c'])
 
     def test_read_jsonl_file(self):
@@ -64,11 +64,11 @@ class TestChain(unittest.TestCase):
         result = list(utils.walk_leaf_dirs(root_dir))
         self.assertEqual(result, [os.path.join(root_dir, 'subdir')])
 
-    def test_write_lines_to_filepath(self):
+    def test_write_file(self):
         data = ['a', 'b', 'c']
         # TODO: Do tempfile.mkstemp stuff
         tempfilepath = tempfile.mktemp()
-        transform = utils.write_lines_to_filepath(tempfilepath)
+        transform = utils.write_file(tempfilepath)
         result = list(transform(data))
         self.assertEqual(result, data)
         with open(tempfilepath, 'r') as temp_f:
@@ -76,12 +76,12 @@ class TestChain(unittest.TestCase):
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
 
-    def test_write_lines_to_filepath_append(self):
+    def test_write_file_append(self):
         data = ['a', 'b', 'c']
         tempfilepath = tempfile.mktemp()
         with open(tempfilepath, 'w') as temp_f:
             temp_f.write('zzz\n')
-        transform = utils.write_lines_to_filepath(tempfilepath, append=True)
+        transform = utils.write_file(tempfilepath, append=True)
         result = list(transform(data))
         self.assertEqual(result, data)
         with open(tempfilepath, 'r') as temp_f:
@@ -89,14 +89,14 @@ class TestChain(unittest.TestCase):
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
 
-    def test_write_json_lines_to_filepath(self):
+    def test_write_jsonl_file(self):
         # TODO: Do tempfile stuff
         data = [
             {'a': 1, 'b': False},
             {'c': 'd', 'b': False},
         ]
         tempfilepath = tempfile.mktemp()
-        transform = utils.write_json_lines_to_filepath(tempfilepath)
+        transform = utils.write_jsonl_file(tempfilepath)
         result = list(transform(data))
         self.assertEqual(result, data)
         with open(tempfilepath, 'r') as temp_f:
@@ -105,7 +105,7 @@ class TestChain(unittest.TestCase):
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
 
-    def test_write_json_lines_to_filepath_append(self):
+    def test_write_jsonl_file_append(self):
         data = [
             {'a': 1, 'b': False},
             {'c': 'd', 'b': False},
@@ -115,7 +115,7 @@ class TestChain(unittest.TestCase):
         tempfilepath = tempfile.mktemp()
         with open(tempfilepath, 'w') as temp_f:
             temp_f.write(json.dumps(extra) + '\n')
-        transform = utils.write_json_lines_to_filepath(tempfilepath, append=True)
+        transform = utils.write_jsonl_file(tempfilepath, append=True)
         result = list(transform(data))
         self.assertEqual(result, data)
         with open(tempfilepath, 'r') as temp_f:

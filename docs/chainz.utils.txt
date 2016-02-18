@@ -30,7 +30,7 @@ FUNCTIONS
         
         The dialect argument is supplied to the csv reader.
     
-    read_file_lines(filepath)
+    read_file(filepath)
         Iterates over a file, line by line.
         
         This generator will yield each line in turn, without the linebreak.
@@ -46,18 +46,18 @@ FUNCTIONS
         
         Leaf directories are those dirs that don't have any subdirectories.
     
-    write_json_lines_to_filepath(filepath, append=False)
-        A transform that writes the incoming objects as JSON objects, one per
-        line, to the filepath.
-        
-        Use like chain.transform(transform_write_json_lines_to_filepath(the_filepath))
-        If append == True, append to the file instead of overwriting it.
-    
-    write_lines_to_filepath(filepath, append=False)
+    write_file(filepath, append=False)
         A transform that writes the incoming objects, one per line, to
         the filepath.
         
         Use like chain.transform(transform_write_lines_to_filepath(the_filepath))
+        If append == True, append to the file instead of overwriting it.
+    
+    write_jsonl_file(filepath, append=False)
+        A transform that writes the incoming objects as JSON objects, one per
+        line, to the filepath.
+        
+        Use like chain.transform(transform_write_json_lines_to_filepath(the_filepath))
         If append == True, append to the file instead of overwriting it.
 
 
