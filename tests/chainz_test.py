@@ -11,9 +11,9 @@ class TestChain(unittest.TestCase):
 
     def test_iter(self):
         a = Chain(xrange(2))
-        it = a.__iter__()
-        self.assertEqual(it.next(), 0)
-        self.assertEqual(it.next(), 1)
+        it = iter(a)
+        self.assertEqual(next(it), 0)
+        self.assertEqual(next(it), 1)
         try:
             it.next()
         except StopIteration:
@@ -21,22 +21,29 @@ class TestChain(unittest.TestCase):
         else:
             self.fail()
 
-    # def test_next(self):
-    #     a = Chain(xrange(2))
-    #     self.assertEqual(a.next(), 0)
-    #     self.assertEqual(a.next(), 1)
-    #     try:
-    #         a.next()
-    #     except StopIteration:
-    #         pass
-    #     else:
-    #         self.fail()
-    #
+    def test_next(self):
+        a = Chain(xrange(2))
+        self.assertEqual(next(a), 0)
+        self.assertEqual(next(a), 1)
+        try:
+            next(a)
+        except StopIteration:
+            pass
+        else:
+            self.fail()
+
     # MAPPING TYPES
     def test_map(self):
         a = xrange(4)
         b = Chain(a).map(lambda x: 2*x)
         self.assertEqual(list(b), [0, 2, 4, 6])
+
+    def test_map_kwargs(self):
+        def mult(x, m=2):
+            return x*m
+        a = xrange(3)
+        b = Chain(a).map(mult, m=3)
+        self.assertEqual(list(b), [0, 3, 6])
 
     def test_map_error(self):
         a = xrange(4)
@@ -77,6 +84,20 @@ class TestChain(unittest.TestCase):
             {'k': 4},
         ])
 
+    def test_map_key_kwargs(self):
+        def make_obj(x):
+            return dict(k=x)
+
+        def f(x, m):
+            return x*m
+
+        b = Chain(xrange(3)).map(make_obj).map_key('k', f, m=3)
+        self.assertEqual(list(b), [
+            {'k': 0},
+            {'k': 3},
+            {'k': 6},
+        ])
+
     def test_map_key_tuple(self):
         def make_obj(x):
             return dict(k=x, kk=x+1)
@@ -104,6 +125,12 @@ class TestChain(unittest.TestCase):
         b = Chain(a).filter(lambda x: x % 2)
         self.assertEqual(list(b), [1, 3])
 
+    def test_filter_kwargs(self):
+        def f(x, m):
+            return x % m == 0
+        b = Chain(xrange(6)).filter(f, m=2)
+        self.assertEqual(list(b), [0, 2, 4])
+
     def test_filter_error(self):
         a = xrange(4)
         e = Exception('bad')
@@ -127,6 +154,15 @@ class TestChain(unittest.TestCase):
         b = Chain(a).omit(lambda x: x % 2)
         self.assertEqual(list(b), [0, 2])
 
+    def test_omit_kwargs(self):
+        a = xrange(5)
+
+        def f(x, m):
+            return x % m == 0
+
+        b = Chain(a).omit(f, m=3)
+        self.assertEqual(list(b), [1, 2, 4])
+
     def test_do(self):
         res = []
 
@@ -134,6 +170,15 @@ class TestChain(unittest.TestCase):
             res.append(x)
         list(Chain(xrange(3)).do(f))
         self.assertEqual(res, [0, 1, 2])
+
+    def test_do_kwargs(self):
+        res = []
+
+        def f(x, m):
+            res.append(x*m)
+
+        list(Chain(xrange(3)).do(f, m=3))
+        self.assertEqual(res, [0, 3, 6])
 
     def test_do_error(self):
         e = Exception('bad')
@@ -163,6 +208,20 @@ class TestChain(unittest.TestCase):
             {'a': 4, 'b': 6},
             {'a': 2, 'b': 4},
             {'a': 1, 'b': 3}
+        ]
+        self.assertEqual(res, desired_result)
+
+    def test_set_key_fn_kwargs(self):
+        objs = [{'a': 4}, {'a': 2}, {'a': 1}]
+
+        def f(x, m):
+            return x['a'] + m
+
+        res = list(Chain(objs).set_key('b', f, m=3))
+        desired_result = [
+            {'a': 4, 'b': 7},
+            {'a': 2, 'b': 5},
+            {'a': 1, 'b': 4}
         ]
         self.assertEqual(res, desired_result)
 

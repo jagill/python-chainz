@@ -1,4 +1,5 @@
 from itertools import islice, tee
+from functools import partial
 
 
 class Chain:
@@ -24,16 +25,23 @@ class Chain:
     def __init__(self, iterable):
         """Create a chain with the supplied iterable."""
         self.iterable = iterable
+        self.iter = None
         self._on_error = None
         self._skip = {}  # Unique, non-comparable element
 
     def __iter__(self):
         """x.__iter__() <==> iter(x)"""
-        return self.iterable.__iter__()
+        if self.iter is None:
+            self.iter = iter(self.iterable)
+        return self.iter
 
     def next(self):
         """x.next() -> the next value, or raise StopIteration"""
-        return self.iterable.__iter__().next()
+        return next(iter(self))
+
+    def __next__(self):
+        """x.__next__() -> the next value, or raise StopIteration"""
+        return next(iter(self))
 
     def _wrap_iterable(self, f, iterable):
         for x in iterable:
@@ -78,18 +86,28 @@ class Chain:
         return self
 
     # Mapping-type operations
-    def map(self, f):
-        """Map the iterator through f."""
+    def map(self, f, **kwargs):
+        """Map the iterator through f.
+
+        Any kwargs passed to map will be passed to f.
+        """
+        if kwargs is not None and len(kwargs) > 0:
+            f = partial(f, **kwargs)
+
         self.iterable = self._wrap_iterable(f, self.iterable)
         return self
 
-    def map_key(self, key, f):
+    def map_key(self, key, f, **kwargs):
         """Map the value of a key through f.
 
         If key is a tuple or list, apply all values through the same f.
+        Any kwargs passed to map will be passed to f.
         """
         if isinstance(key, basestring):
             key = (key,)
+
+        if kwargs is not None and len(kwargs) > 0:
+            f = partial(f, **kwargs)
 
         def fn(obj):
             for k in key:
@@ -99,12 +117,16 @@ class Chain:
         self.iterable = self._wrap_iterable(fn, self.iterable)
         return self
 
-    def filter(self, f):
+    def filter(self, f, **kwargs):
         """Filter the iterator through f.
 
         Only elements x such that f(x) is Truthy will pass through, the others
         will be dropped.
+        Any kwargs passed to map will be passed to f.
         """
+        if kwargs is not None and len(kwargs) > 0:
+            f = partial(f, **kwargs)
+
         def filter_f(x):
             if f(x):
                 return x
@@ -112,12 +134,16 @@ class Chain:
         self.iterable = self._wrap_iterable(filter_f, self.iterable)
         return self
 
-    def omit(self, f):
+    def omit(self, f, **kwargs):
         """Filter the iterator through f.
 
         Only elements x such that f(x) is Falsy will pass through, the others
         will be dropped.
+        Any kwargs passed to map will be passed to f.
         """
+        if kwargs is not None and len(kwargs) > 0:
+            f = partial(f, **kwargs)
+
         def omit_f(x):
             if not f(x):
                 return x
@@ -125,13 +151,17 @@ class Chain:
         self.iterable = self._wrap_iterable(omit_f, self.iterable)
         return self
 
-    def do(self, f):
+    def do(self, f, **kwargs):
         """Pass all elements through f.
 
         Unlike for_each, this is not a sink and does not consume the iteratable;
         it creates a new iterable that lazily applies f to each element.
         Note that f may modify the element.  The return value of f is ignored.
+        Any kwargs passed to map will be passed to f.
         """
+        if kwargs is not None and len(kwargs) > 0:
+            f = partial(f, **kwargs)
+
         def do_f(x):
             f(x)
             return x
@@ -139,18 +169,22 @@ class Chain:
         return self
 
     # KEY OPERATIONS
-    def set_key(self, key, value):
+    def set_key(self, key, value, **kwargs):
         """Set a key `key` with value `value` to each object.
 
         If `value` is a function, call it on the object and use that value
         instead.
+        Any kwargs passed to map will be passed to f.
 
         Each object must implement dict methods, particularly `__setitem__`.
         """
         if not hasattr(value, '__call__'):
             value_fn = lambda x: value
         else:
-            value_fn = value
+            if len(kwargs) > 0:
+                value_fn = partial(value, **kwargs)
+            else:
+                value_fn = value
 
         def do_f(x):
             x[key] = value_fn(x)

@@ -26,6 +26,9 @@ chainz.Chain = class Chain
  |  __iter__(self)
  |      x.__iter__() <==> iter(x)
  |  
+ |  __next__(self)
+ |      x.__next__() -> the next value, or raise StopIteration
+ |  
  |  copy(self)
  |      Make a copy of this chain.
  |      
@@ -36,23 +39,25 @@ chainz.Chain = class Chain
  |      
  |      Note that this is a sink; it entirely consumes the iterable.
  |  
- |  do(self, f)
+ |  do(self, f, **kwargs)
  |      Pass all elements through f.
  |      
  |      Unlike for_each, this is not a sink and does not consume the iteratable;
  |      it creates a new iterable that lazily applies f to each element.
  |      Note that f may modify the element.  The return value of f is ignored.
+ |      Any kwargs passed to map will be passed to f.
  |  
  |  drop_key(self, key)
  |      Drop the key `key` from each object.
  |      
  |      Each object must implement dict methods, particularly `__delitem__`.
  |  
- |  filter(self, f)
+ |  filter(self, f, **kwargs)
  |      Filter the iterator through f.
  |      
  |      Only elements x such that f(x) is Truthy will pass through, the others
  |      will be dropped.
+ |      Any kwargs passed to map will be passed to f.
  |  
  |  flatten(self, strict=True)
  |      Flattens the iterables in iterable.
@@ -92,13 +97,16 @@ chainz.Chain = class Chain
  |      
  |      Note that this creates a new object; it does not modify the old object.
  |  
- |  map(self, f)
+ |  map(self, f, **kwargs)
  |      Map the iterator through f.
+ |      
+ |      Any kwargs passed to map will be passed to f.
  |  
- |  map_key(self, key, f)
+ |  map_key(self, key, f, **kwargs)
  |      Map the value of a key through f.
  |      
  |      If key is a tuple or list, apply all values through the same f.
+ |      Any kwargs passed to map will be passed to f.
  |  
  |  mapcat(self, gen)
  |      Applies a generator gen to each item, yielding the results sequentially.
@@ -114,11 +122,12 @@ chainz.Chain = class Chain
  |  next(self)
  |      x.next() -> the next value, or raise StopIteration
  |  
- |  omit(self, f)
+ |  omit(self, f, **kwargs)
  |      Filter the iterator through f.
  |      
  |      Only elements x such that f(x) is Falsy will pass through, the others
  |      will be dropped.
+ |      Any kwargs passed to map will be passed to f.
  |  
  |  on_error(self, f)
  |      Sets the error handler for the chain.
@@ -151,11 +160,12 @@ chainz.Chain = class Chain
  |      If strict=True, throw an error if the object does not have old_key.
  |      If strict=False, ignore such objects.
  |  
- |  set_key(self, key, value)
+ |  set_key(self, key, value, **kwargs)
  |      Set a key `key` with value `value` to each object.
  |      
  |      If `value` is a function, call it on the object and use that value
  |      instead.
+ |      Any kwargs passed to map will be passed to f.
  |      
  |      Each object must implement dict methods, particularly `__setitem__`.
  |  
