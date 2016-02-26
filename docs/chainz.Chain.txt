@@ -182,7 +182,7 @@ chainz.Chain = class Chain
  |      slice(beg, end, [step]): start slice at `beg`, end at `end`, with step
  |          `step` if provided.
  |  
- |  transform(self, trans)
+ |  transform(self, trans, **kwargs)
  |      Pass the iterator through the transform f.
  |      
  |      This is a lower-level method.  A transform does not get each individual
@@ -197,4 +197,6 @@ chainz.Chain = class Chain
  |      This will keep the output open throughout the iteration.
  |      Note that the transform is responsible for calling on_error, if
  |      appropriate.  Please see the examples in the above functions.
+ |      
+ |      Any kwargs passed to transform will be passed to trans.
 

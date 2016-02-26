@@ -370,6 +370,15 @@ class TestChain(unittest.TestCase):
         a = Chain(xrange(5)).transform(t)
         self.assertEqual(list(a), [0, 2, 4])
 
+    def test_transform_kwargs(self):
+        def t(in_iterator, m):
+            for x in in_iterator:
+                if x % m == 0:
+                    yield x
+
+        a = Chain(xrange(7)).transform(t, m=3)
+        self.assertEqual(list(a), [0, 3, 6])
+
     # CONTROLS
     def test_slice_none(self):
         a = xrange(10)

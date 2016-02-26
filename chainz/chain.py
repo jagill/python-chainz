@@ -289,7 +289,7 @@ class Chain:
         self.iterable = self._wrap_iterable_with_gen(flatten_gen, self.iterable)
         return self
 
-    def transform(self, trans):
+    def transform(self, trans, **kwargs):
         """Pass the iterator through the transform f.
 
         This is a lower-level method.  A transform does not get each individual
@@ -304,7 +304,12 @@ class Chain:
         This will keep the output open throughout the iteration.
         Note that the transform is responsible for calling on_error, if
         appropriate.  Please see the examples in the above functions.
+
+        Any kwargs passed to transform will be passed to trans.
         """
+        if len(kwargs) > 0:
+            trans = partial(trans, **kwargs)
+
         self.iterable = trans(self.iterable)
         return self
 
