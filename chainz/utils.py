@@ -42,7 +42,6 @@ def read_file(filepath):
 
 def read_jsonl_file(filepath):
     """Iterates over a jsonl file, yielding the JSON objects."""
-    # XXX Need to use encoding?
     import json
     with codecs.open(filepath, 'r', encoding='utf-8') as f:
         for line in f:
@@ -129,3 +128,26 @@ def write_jsonl_file(filepath, append=False):
                 yield x
 
     return write_json_lines_to_filepath
+
+
+def write_csv_dict_file(filepath, fieldnames, include_header=True, dialect=None, append=False):
+    """A transform that writes incoming objects into a csv file.
+
+    This uses csv.DictWriter, so the file should be in a form appropriate to
+    that. The dialect and fieldnames arguments are supplied to the csv reader.
+    If include_header is true, it will write the header line (with the column
+    names) at the start of the file.
+    """
+    import csv
+    mode = 'a' if append else 'w'
+
+    def write_csv_lines_to_filepath(in_iterator):
+        with codecs.open(filepath, mode, encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames, dialect=dialect)
+            if include_header:
+                writer.writeheader()
+            for x in in_iterator:
+                writer.writerow(x)
+                yield x
+
+    return write_csv_lines_to_filepath

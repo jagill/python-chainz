@@ -1,6 +1,7 @@
 import os
 import unittest
 import json
+import csv
 import tempfile
 from chainz import Chain, utils
 
@@ -121,5 +122,22 @@ class TestChain(unittest.TestCase):
         with open(tempfilepath, 'r') as temp_f:
             result_data = [json.loads(x) for x in temp_f]
             self.assertEqual(result_data, expected_data)
+        # FIXME This probably doesn't remove the file if the assertion fails.
+        os.remove(tempfilepath)
+
+    def test_write_csv_dict_file(self):
+        # TODO: Do tempfile stuff
+        data = [
+            {'a': '1', 'b': 'abc'},
+            {'a': '2', 'b': 'def'},
+        ]
+        tempfilepath = tempfile.mktemp()
+        transform = utils.write_csv_dict_file(tempfilepath, ('a', 'b'))
+        result = list(transform(data))
+        self.assertEqual(result, data)
+        with open(tempfilepath, 'r') as temp_f:
+            reader = csv.DictReader(temp_f)
+            result_data = list(reader)
+            self.assertEqual(result_data, data)
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
