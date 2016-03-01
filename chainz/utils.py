@@ -104,8 +104,8 @@ def write_file(filepath, append=False):
     def write_lines_to_filepath(in_iterator):
         with open(filepath, mode) as output:
             for x in in_iterator:
-                # FIXME: Use os-aware line endings.
-                output.write(x + '\n')
+                output.write(x)
+                output.write('\n')
                 yield x
 
     return write_lines_to_filepath
@@ -124,7 +124,8 @@ def write_jsonl_file(filepath, append=False):
     def write_json_lines_to_filepath(in_iterator):
         with open(filepath, mode) as output:
             for x in in_iterator:
-                output.write(json.dumps(x) + '\n')
+                output.write(json.dumps(x))
+                output.write('\n')
                 yield x
 
     return write_json_lines_to_filepath
@@ -133,13 +134,18 @@ def write_jsonl_file(filepath, append=False):
 def write_csv_dict_file(filepath, fieldnames, include_header=True, dialect=None, append=False):
     """A transform that writes incoming objects into a csv file.
 
-    This uses csv.DictWriter, so the file should be in a form appropriate to
-    that. The dialect and fieldnames arguments are supplied to the csv reader.
+    This uses csv.DictWriter, so each object will be converted into a csv row
+    in the order determined by filenames.
+    The dialect argument is supplied to the csv writer.
     If include_header is true, it will write the header line (with the column
-    names) at the start of the file.
+    names) first.
+    If append == True, append to the file instead of overwriting it.
     """
     import csv
     mode = 'a' if append else 'w'
+    if append and include_header:
+        # It would be bad to include a header in the midst of a csv file.
+        raise Exception('Cannot specify both append and include_header as true.')
 
     def write_csv_lines_to_filepath(in_iterator):
         with codecs.open(filepath, mode, encoding='utf-8') as f:

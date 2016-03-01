@@ -46,6 +46,16 @@ FUNCTIONS
         
         Leaf directories are those dirs that don't have any subdirectories.
     
+    write_csv_dict_file(filepath, fieldnames, include_header=True, dialect=None, append=False)
+        A transform that writes incoming objects into a csv file.
+        
+        This uses csv.DictWriter, so each object will be converted into a csv row
+        in the order determined by filenames.
+        The dialect argument is supplied to the csv writer.
+        If include_header is true, it will write the header line (with the column
+        names) first.
+        If append == True, append to the file instead of overwriting it.
+    
     write_file(filepath, append=False)
         A transform that writes the incoming objects, one per line, to
         the filepath.
