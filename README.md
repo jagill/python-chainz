@@ -48,15 +48,15 @@ is the object that caused the exception.
 
 #### Example
 ```python
-def on_error(exception, obj):
-  print("%s caused exception: %s" % (exception, obj))
+def handle_error(exception, obj):
+  print("%s caused exception: %s" % (obj, exception))
 
 def double(x):
   if x == 1:
     raise Exception('Bad')
   return x*2
 
-chain = Chain(xrange(3)).on_error(on_error).map(double)
+chain = Chain(xrange(3)).on_error(handle_error).map(double)
 list(chain)
 # "1 caused exception: Exception('Bad')"
 # [0, 2]

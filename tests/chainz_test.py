@@ -49,7 +49,7 @@ class TestChain(unittest.TestCase):
         a = xrange(4)
         e = Exception('bad')
 
-        def err_f(ex, o):
+        def handle_error(ex, o):
             self.assertEqual(ex, e)
             self.assertEqual(o, 1)
 
@@ -59,8 +59,26 @@ class TestChain(unittest.TestCase):
             return 2*x
 
         b = Chain(a)\
-            .on_error(err_f)\
+            .on_error(handle_error)\
             .map(f)
+        self.assertEqual(list(b), [0, 4, 6])
+
+    def test_map_late_error(self):
+        a = xrange(4)
+        e = Exception('bad')
+
+        def handle_error(ex, o):
+            self.assertEqual(ex, e)
+            self.assertEqual(o, 1)
+
+        def f(x):
+            if x == 1:
+                raise e
+            return 2*x
+
+        b = Chain(a)\
+            .map(f)\
+            .on_error(handle_error)
         self.assertEqual(list(b), [0, 4, 6])
 
     def test_map_error_no_error_fn(self):
