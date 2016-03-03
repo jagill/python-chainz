@@ -1,5 +1,6 @@
 from itertools import islice, tee
 from functools import partial
+from collections import OrderedDict
 
 
 class Chain:
@@ -22,18 +23,36 @@ class Chain:
     The chain will be un-evaluated, and the iterable will not be consumed.
     """
 
-    def __init__(self, iterable):
+    def __init__(self, iterable, debug=False):
         """Create a chain with the supplied iterable."""
         self.iterable = iterable
-        self.iter = None
+        self._debug = debug
+        self._iter = None
         self._on_error = None
         self._skip = {}  # Unique, non-comparable element
+        self._n_steps = 0
+        self._counts = OrderedDict()
+
+    def _make_name(self, name):
+        n_step = self._n_steps
+        self._n_steps += 1
+        name = "{0}:{1}".format(n_step, name)
+        if self._debug:
+            self._counts[name] = 0
+        return name
+
+    def _report_counts(self):
+        """Return a string describing the counts.  Requires debug==True."""
+        s = ''
+        for key, count in self._counts.items():
+            s += '{0}: {1}\n'.format(key, count)
+        return s
 
     def __iter__(self):
         """x.__iter__() <==> iter(x)"""
-        if self.iter is None:
-            self.iter = iter(self.iterable)
-        return self.iter
+        if self._iter is None:
+            self._iter = iter(self.iterable)
+        return self._iter
 
     def next(self):
         """x.next() -> the next value, or raise StopIteration"""
@@ -43,23 +62,28 @@ class Chain:
         """x.__next__() -> the next value, or raise StopIteration"""
         return next(iter(self))
 
-    def _wrap_iterable(self, f, iterable):
+    def _wrap_iterable(self, f, iterable, name):
         for x in iterable:
             try:
                 out = f(x)
                 if out is not self._skip:
                     yield out
+                    if self._debug:
+                        self._counts[name] += 1
             except Exception as e:
+                print 'Exception caught at %s' % name
                 if self._on_error is None:
                     raise
                 self._on_error(e, x)
 
-    def _wrap_iterable_with_gen(self, gen, iterable):
+    def _wrap_iterable_with_gen(self, gen, iterable, name):
         for x in iterable:
             try:
                 for out in gen(x):
                     if out is not self._skip:
                         yield out
+                        if self._debug:
+                            self._counts[name] += 1
             except Exception as e:
                 if self._on_error is None:
                     raise
@@ -91,10 +115,11 @@ class Chain:
 
         Any kwargs passed to map will be passed to f.
         """
+        name = self._make_name('map')
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
 
-        self.iterable = self._wrap_iterable(f, self.iterable)
+        self.iterable = self._wrap_iterable(f, self.iterable, name)
         return self
 
     def map_key(self, key, f, **kwargs):
@@ -103,6 +128,7 @@ class Chain:
         If key is a tuple or list, apply all values through the same f.
         Any kwargs passed to map will be passed to f.
         """
+        name = self._make_name('map_key')
         if isinstance(key, basestring):
             key = (key,)
 
@@ -114,7 +140,7 @@ class Chain:
                 obj[k] = f(obj[k])
             return obj
 
-        self.iterable = self._wrap_iterable(fn, self.iterable)
+        self.iterable = self._wrap_iterable(fn, self.iterable, name)
         return self
 
     def filter(self, f, **kwargs):
@@ -124,6 +150,7 @@ class Chain:
         will be dropped.
         Any kwargs passed to map will be passed to f.
         """
+        name = self._make_name('filter')
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
 
@@ -131,7 +158,7 @@ class Chain:
             if f(x):
                 return x
             return self._skip
-        self.iterable = self._wrap_iterable(filter_f, self.iterable)
+        self.iterable = self._wrap_iterable(filter_f, self.iterable, name)
         return self
 
     def omit(self, f, **kwargs):
@@ -141,6 +168,7 @@ class Chain:
         will be dropped.
         Any kwargs passed to map will be passed to f.
         """
+        name = self._make_name('omit')
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
 
@@ -148,7 +176,7 @@ class Chain:
             if not f(x):
                 return x
             return self._skip
-        self.iterable = self._wrap_iterable(omit_f, self.iterable)
+        self.iterable = self._wrap_iterable(omit_f, self.iterable, name)
         return self
 
     def do(self, f, **kwargs):
@@ -159,13 +187,14 @@ class Chain:
         Note that f may modify the element.  The return value of f is ignored.
         Any kwargs passed to map will be passed to f.
         """
+        name = self._make_name('do')
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
 
         def do_f(x):
             f(x)
             return x
-        self.iterable = self._wrap_iterable(do_f, self.iterable)
+        self.iterable = self._wrap_iterable(do_f, self.iterable, name)
         return self
 
     # KEY OPERATIONS
@@ -178,6 +207,7 @@ class Chain:
 
         Each object must implement dict methods, particularly `__setitem__`.
         """
+        name = self._make_name('set_key')
         if not hasattr(value, '__call__'):
             value_fn = lambda x: value
         else:
@@ -189,7 +219,7 @@ class Chain:
         def do_f(x):
             x[key] = value_fn(x)
             return x
-        self.iterable = self._wrap_iterable(do_f, self.iterable)
+        self.iterable = self._wrap_iterable(do_f, self.iterable, name)
         return self
 
     def drop_key(self, key):
@@ -197,10 +227,12 @@ class Chain:
 
         Each object must implement dict methods, particularly `__delitem__`.
         """
+        name = self._make_name('drop_key')
+
         def do_f(x):
             del x[key]
             return x
-        self.iterable = self._wrap_iterable(do_f, self.iterable)
+        self.iterable = self._wrap_iterable(do_f, self.iterable, name)
         return self
 
     def rename_key(self, old_key, new_key, strict=True):
@@ -209,6 +241,8 @@ class Chain:
         If strict=True, throw an error if the object does not have old_key.
         If strict=False, ignore such objects.
         """
+        name = self._make_name('rename_key')
+
         def rename_key(x):
             try:
                 x[new_key] = x.pop(old_key)
@@ -216,7 +250,7 @@ class Chain:
                 if strict:
                     raise
             return x
-        self.iterable = self._wrap_iterable(rename_key, self.iterable)
+        self.iterable = self._wrap_iterable(rename_key, self.iterable, name)
         return self
 
     def keep_keys(self, keys):
@@ -230,6 +264,7 @@ class Chain:
 
         Note that this creates a new object; it does not modify the old object.
         """
+        name = self._make_name('keep_keys')
         if isinstance(keys, basestring):
             keys = [keys]
 
@@ -240,7 +275,7 @@ class Chain:
                     new[k] = x[k]
             return new
 
-        self.iterable = self._wrap_iterable(keep_keys, self.iterable)
+        self.iterable = self._wrap_iterable(keep_keys, self.iterable, name)
         return self
 
     # Control operations
@@ -252,6 +287,8 @@ class Chain:
         slice(beg, end, [step]): start slice at `beg`, end at `end`, with step
             `step` if provided.
         """
+        name = self._make_name('slice')
+        # TODO: How do we record counds for slice?
         self.iterable = islice(self.iterable, *args)
         return self
 
@@ -267,7 +304,8 @@ class Chain:
         print list(chain)
         # ['0a', '0b', '1a', '1b', '2a', '2b']
         """
-        self.iterable = self._wrap_iterable_with_gen(gen, self.iterable)
+        name = self._make_name('mapcat')
+        self.iterable = self._wrap_iterable_with_gen(gen, self.iterable, name)
         return self
 
     def flatten(self, strict=True):
@@ -276,6 +314,8 @@ class Chain:
         If strict is True, raise an Exception for any non-iterables in iterable.
         If strict is False, pass them through.
         """
+        name = self._make_name('flatten')
+
         def flatten_gen(x):
                 try:
                     for y in x:
@@ -286,7 +326,7 @@ class Chain:
                     else:
                         yield x
 
-        self.iterable = self._wrap_iterable_with_gen(flatten_gen, self.iterable)
+        self.iterable = self._wrap_iterable_with_gen(flatten_gen, self.iterable, name)
         return self
 
     def transform(self, trans, **kwargs):
@@ -319,8 +359,10 @@ class Chain:
 
         Note that this is a sink; it will entirely consume the iterable.
         """
+        name = self._make_name('sink')
         for x in self.iterable:
-            pass
+            if self._debug:
+                self._counts[name] += 1
 
     def reduce(self, f, first=None):
         """Reduce the iterable by f, with optional first value.
@@ -407,8 +449,8 @@ def join_on_key(key, a, b):
     """
     a_store = {}
     b_store = {}
-    a_iter = a.__iter__()
-    b_iter = b.__iter__()
+    a_iter = iter(a)
+    b_iter = iter(b)
     a_active = True
     b_active = True
     while a_active or b_active:
