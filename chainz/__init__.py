@@ -6,4 +6,4 @@ chainz.Chain: A wrapper class for iterables with chaining, functional methods.
 chainz.utils: A set of helper functions that can be used with Chain.
 """
 
-from chain import Chain
+from .chain import Chain
