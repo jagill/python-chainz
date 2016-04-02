@@ -1,6 +1,12 @@
 from itertools import islice, tee
 from functools import partial
 
+# Python3 compatibility
+try:
+  basestring
+except NameError:
+  basestring = str
+
 
 class Chain:
     """
@@ -89,7 +95,7 @@ class Chain:
     def map(self, f, **kwargs):
         """Map the iterator through f.
 
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
         """
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
@@ -101,7 +107,7 @@ class Chain:
         """Map the value of a key through f.
 
         If key is a tuple or list, apply all values through the same f.
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
         """
         if isinstance(key, basestring):
             key = (key,)
@@ -122,7 +128,7 @@ class Chain:
 
         Only elements x such that f(x) is Truthy will pass through, the others
         will be dropped.
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
         """
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
@@ -139,7 +145,7 @@ class Chain:
 
         Only elements x such that f(x) is Falsy will pass through, the others
         will be dropped.
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
         """
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
@@ -157,7 +163,7 @@ class Chain:
         Unlike for_each, this is not a sink and does not consume the iteratable;
         it creates a new iterable that lazily applies f to each element.
         Note that f may modify the element.  The return value of f is ignored.
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
         """
         if kwargs is not None and len(kwargs) > 0:
             f = partial(f, **kwargs)
@@ -174,7 +180,7 @@ class Chain:
 
         If `value` is a function, call it on the object and use that value
         instead.
-        Any kwargs passed to map will be passed to f.
+        Any kwargs passed will be passed to f.
 
         Each object must implement dict methods, particularly `__setitem__`.
         """
@@ -305,7 +311,7 @@ class Chain:
         Note that the transform is responsible for calling on_error, if
         appropriate.  Please see the examples in the above functions.
 
-        Any kwargs passed to transform will be passed to trans.
+        Any kwargs passed will be passed to trans.
         """
         if len(kwargs) > 0:
             trans = partial(trans, **kwargs)
@@ -317,7 +323,7 @@ class Chain:
     def sink(self):
         """Consume the iterable; do nothing additional with the elements.
 
-        Note that this is a sink; it will entirely consume the iterable.
+        Note that this is a sink; it entirely consumes the iterable.
         """
         for x in self.iterable:
             pass
@@ -334,7 +340,7 @@ class Chain:
             result = first
         else:
             try:
-                result = self.iterable.__iter__().next()
+                result = next(self)
             except StopIteration:
                 result = None
 
@@ -414,7 +420,7 @@ def join_on_key(key, a, b):
     while a_active or b_active:
         if a_active:
             try:
-                x = a_iter.next()
+                x = next(a_iter)
                 x = dict(x)  # Copy so as not to modify x
                 if x[key] in b_store:
                     y = b_store.pop(x[key])
@@ -427,7 +433,7 @@ def join_on_key(key, a, b):
 
         if b_active:
             try:
-                y = b_iter.next()
+                y = next(b_iter)
                 if y[key] in a_store:
                     x = a_store.pop(y[key])
                     x.update(y)

@@ -1,14 +1,12 @@
 from setuptools import setup
+import pypandoc
 
-
-def readme():
-    with open('README.md') as f:
-        return f.read()
+long_description = pypandoc.convert('README.md', 'rst')
 
 setup(name='chainz',
-      version='0.12',
+      version='0.13',
       description='Lightweight chaining functional methods for iterables',
-      long_description=readme(),
+      long_description=long_description,
       keywords='iterable generators functional map filter reduce',
       url='http://github.com/jagill/python-chainz',
       author='James Gill',

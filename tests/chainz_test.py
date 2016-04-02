@@ -1,28 +1,29 @@
 from chainz import Chain
 import unittest
 import operator
+from six.moves import range
 
 
 class TestChain(unittest.TestCase):
     def test_constructor(self):
-        a = xrange(3)
+        a = range(3)
         b = Chain(a)
         self.assertEqual(list(b), [0, 1, 2])
 
     def test_iter(self):
-        a = Chain(xrange(2))
+        a = Chain(range(2))
         it = iter(a)
         self.assertEqual(next(it), 0)
         self.assertEqual(next(it), 1)
         try:
-            it.next()
+            next(it)
         except StopIteration:
             pass
         else:
             self.fail()
 
     def test_next(self):
-        a = Chain(xrange(2))
+        a = Chain(range(2))
         self.assertEqual(next(a), 0)
         self.assertEqual(next(a), 1)
         try:
@@ -34,19 +35,19 @@ class TestChain(unittest.TestCase):
 
     # MAPPING TYPES
     def test_map(self):
-        a = xrange(4)
+        a = range(4)
         b = Chain(a).map(lambda x: 2*x)
         self.assertEqual(list(b), [0, 2, 4, 6])
 
     def test_map_kwargs(self):
         def mult(x, m=2):
             return x*m
-        a = xrange(3)
+        a = range(3)
         b = Chain(a).map(mult, m=3)
         self.assertEqual(list(b), [0, 3, 6])
 
     def test_map_error(self):
-        a = xrange(4)
+        a = range(4)
         e = Exception('bad')
 
         def handle_error(ex, o):
@@ -64,7 +65,7 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(b), [0, 4, 6])
 
     def test_map_late_error(self):
-        a = xrange(4)
+        a = range(4)
         e = Exception('bad')
 
         def handle_error(ex, o):
@@ -87,7 +88,7 @@ class TestChain(unittest.TestCase):
                 raise Exception('bad')
             return 2*x
 
-        b = Chain(xrange(4)).map(f)
+        b = Chain(range(4)).map(f)
         with self.assertRaises(Exception):
             list(b)
 
@@ -95,7 +96,7 @@ class TestChain(unittest.TestCase):
         def make_obj(x):
             return dict(k=x)
 
-        b = Chain(xrange(3)).map(make_obj).map_key('k', lambda x: x*2)
+        b = Chain(range(3)).map(make_obj).map_key('k', lambda x: x*2)
         self.assertEqual(list(b), [
             {'k': 0},
             {'k': 2},
@@ -109,7 +110,7 @@ class TestChain(unittest.TestCase):
         def f(x, m):
             return x*m
 
-        b = Chain(xrange(3)).map(make_obj).map_key('k', f, m=3)
+        b = Chain(range(3)).map(make_obj).map_key('k', f, m=3)
         self.assertEqual(list(b), [
             {'k': 0},
             {'k': 3},
@@ -120,7 +121,7 @@ class TestChain(unittest.TestCase):
         def make_obj(x):
             return dict(k=x, kk=x+1)
 
-        b = Chain(xrange(3)).map(make_obj).map_key(('k', 'kk'), lambda x: x*2)
+        b = Chain(range(3)).map(make_obj).map_key(('k', 'kk'), lambda x: x*2)
         self.assertEqual(list(b), [
             {'k': 0, 'kk': 2},
             {'k': 2, 'kk': 4},
@@ -131,7 +132,7 @@ class TestChain(unittest.TestCase):
         def make_obj(x):
             return dict(k=x, kk=x+1)
 
-        b = Chain(xrange(3)).map(make_obj).map_key(['k', 'kk'], lambda x: x*2)
+        b = Chain(range(3)).map(make_obj).map_key(['k', 'kk'], lambda x: x*2)
         self.assertEqual(list(b), [
             {'k': 0, 'kk': 2},
             {'k': 2, 'kk': 4},
@@ -139,18 +140,18 @@ class TestChain(unittest.TestCase):
         ])
 
     def test_filter(self):
-        a = xrange(4)
+        a = range(4)
         b = Chain(a).filter(lambda x: x % 2)
         self.assertEqual(list(b), [1, 3])
 
     def test_filter_kwargs(self):
         def f(x, m):
             return x % m == 0
-        b = Chain(xrange(6)).filter(f, m=2)
+        b = Chain(range(6)).filter(f, m=2)
         self.assertEqual(list(b), [0, 2, 4])
 
     def test_filter_error(self):
-        a = xrange(4)
+        a = range(4)
         e = Exception('bad')
 
         def err_f(ex, o):
@@ -168,12 +169,12 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(b), [3])
 
     def test_omit(self):
-        a = xrange(4)
+        a = range(4)
         b = Chain(a).omit(lambda x: x % 2)
         self.assertEqual(list(b), [0, 2])
 
     def test_omit_kwargs(self):
-        a = xrange(5)
+        a = range(5)
 
         def f(x, m):
             return x % m == 0
@@ -186,7 +187,7 @@ class TestChain(unittest.TestCase):
 
         def f(x):
             res.append(x)
-        list(Chain(xrange(3)).do(f))
+        list(Chain(range(3)).do(f))
         self.assertEqual(res, [0, 1, 2])
 
     def test_do_kwargs(self):
@@ -195,7 +196,7 @@ class TestChain(unittest.TestCase):
         def f(x, m):
             res.append(x*m)
 
-        list(Chain(xrange(3)).do(f, m=3))
+        list(Chain(range(3)).do(f, m=3))
         self.assertEqual(res, [0, 3, 6])
 
     def test_do_error(self):
@@ -210,7 +211,7 @@ class TestChain(unittest.TestCase):
             if x == 1:
                 raise e
             res.append(x)
-        list(Chain(xrange(3)).do(f).on_error(err_f))
+        list(Chain(range(3)).do(f).on_error(err_f))
         self.assertEqual(res, [0, 2])
 
     def test_set_key(self):
@@ -267,7 +268,7 @@ class TestChain(unittest.TestCase):
         objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1}]
         with self.assertRaises(KeyError) as cm:
             list(Chain(objs).rename_key('b', 'c'))
-        self.assertEqual(cm.exception.message, 'b')
+        self.assertEqual(cm.exception.args, ('b',))
 
     def test_rename_key_not_strict(self):
         objs = [{'a': 4, 'b': 1}, {'a': 2, 'b': 2}, {'a': 1}]
@@ -311,7 +312,7 @@ class TestChain(unittest.TestCase):
         def gen(x):
             for letter in ['a', 'b']:
                 yield '%s%s' % (x, letter)
-        b = Chain(xrange(3)).mapcat(gen)
+        b = Chain(range(3)).mapcat(gen)
         self.assertEqual(list(b), ['0a', '0b', '1a', '1b', '2a', '2b'])
 
     def test_mapcat_error(self):
@@ -329,7 +330,7 @@ class TestChain(unittest.TestCase):
                 else:
                     yield out
 
-        b = Chain(xrange(3)).mapcat(gen).on_error(err_f)
+        b = Chain(range(3)).mapcat(gen).on_error(err_f)
         self.assertEqual(list(b), ['0a', '0b', '2a', '2b'])
 
     def test_mapcat_error_2(self):
@@ -347,11 +348,11 @@ class TestChain(unittest.TestCase):
                 else:
                     yield out
 
-        b = Chain(xrange(3)).mapcat(gen).on_error(err_f)
+        b = Chain(range(3)).mapcat(gen).on_error(err_f)
         self.assertEqual(list(b), ['0a', '0b', '1a', '2a', '2b'])
 
     def test_flatten(self):
-        b = Chain(xrange(4)).map(lambda x: xrange(x)).flatten()
+        b = Chain(range(4)).map(lambda x: range(x)).flatten()
         self.assertEqual(list(b), [0, 0, 1, 0, 1, 2])
 
     def test_flatten_strict(self):
@@ -362,9 +363,9 @@ class TestChain(unittest.TestCase):
         def f(x):
             if x == 2:
                 return x
-            return xrange(x)
+            return range(x)
 
-        b = Chain(xrange(4)).on_error(err_f).map(f).flatten()
+        b = Chain(range(4)).on_error(err_f).map(f).flatten()
         self.assertEqual(list(b), [0, 0, 1, 2])
 
     def test_flatten_not_strict(self):
@@ -374,9 +375,9 @@ class TestChain(unittest.TestCase):
         def f(x):
             if x == 2:
                 return x
-            return xrange(x)
+            return range(x)
 
-        b = Chain(xrange(4)).on_error(err_f).map(f).flatten(strict=False)
+        b = Chain(range(4)).on_error(err_f).map(f).flatten(strict=False)
         self.assertEqual(list(b), [0, 2, 0, 1, 2])
 
     def test_transform(self):
@@ -385,7 +386,7 @@ class TestChain(unittest.TestCase):
                 if x % 2 == 0:
                     yield x
 
-        a = Chain(xrange(5)).transform(t)
+        a = Chain(range(5)).transform(t)
         self.assertEqual(list(a), [0, 2, 4])
 
     def test_transform_kwargs(self):
@@ -394,27 +395,27 @@ class TestChain(unittest.TestCase):
                 if x % m == 0:
                     yield x
 
-        a = Chain(xrange(7)).transform(t, m=3)
+        a = Chain(range(7)).transform(t, m=3)
         self.assertEqual(list(a), [0, 3, 6])
 
     # CONTROLS
     def test_slice_none(self):
-        a = xrange(10)
+        a = range(10)
         b = Chain(a).slice(None)
         self.assertEqual(len(list(b)), len(a))
 
     def test_slice_end(self):
-        a = xrange(10)
+        a = range(10)
         b = Chain(a).slice(4)
         self.assertEqual(list(b), [0, 1, 2, 3])
 
     def test_slice_beg_end(self):
-        a = xrange(10)
+        a = range(10)
         b = Chain(a).slice(2, 6)
         self.assertEqual(list(b), [2, 3, 4, 5])
 
     def test_slice_beg_end_step(self):
-        a = xrange(10)
+        a = range(10)
         b = Chain(a).slice(2, 8, 3)
         self.assertEqual(list(b), [2, 5])
 
@@ -424,26 +425,34 @@ class TestChain(unittest.TestCase):
 
         def f(x):
             res.append(x)
-        Chain(xrange(3)).do(f).sink()
+        Chain(range(3)).do(f).sink()
         self.assertEqual(res, [0, 1, 2])
 
     def test_count(self):
         n = 10**6
-        ct = Chain(xrange(n)).count()
+        ct = Chain(range(n)).count()
         self.assertEqual(ct, n)
 
     def test_count_composite(self):
         n = 10**6
-        ct = Chain(xrange(n)).slice(100, n - 100, 2).count()
+        ct = Chain(range(n)).slice(100, n - 100, 2).count()
         self.assertEqual(ct, (n - 200) / 2)
 
     def test_reduce(self):
-        res = Chain(xrange(4)).reduce(operator.add)
+        res = Chain(range(4)).reduce(operator.add)
         self.assertEqual(res, 6)
 
     def test_reduce_first(self):
-        res = Chain(xrange(4)).reduce(operator.add, 10)
+        res = Chain(range(4)).reduce(operator.add, 10)
         self.assertEqual(res, 16)
+
+    def test_reduce_list(self):
+        res = Chain(list(range(4))).map(lambda x: x*2).reduce(operator.add)
+        self.assertEqual(res, 12)
+
+    def test_reduce_max(self):
+        res = Chain([1, 2, 3]).map(lambda x: x*2).reduce(max)
+        self.assertEqual(res, 6)
 
     def test_reduce_error(self):
         e = Exception('bad')
@@ -457,7 +466,7 @@ class TestChain(unittest.TestCase):
                 raise e
             return r + x
 
-        res = Chain(xrange(4)).on_error(err_f).reduce(f)
+        res = Chain(range(4)).on_error(err_f).reduce(f)
         self.assertEqual(res, 5)
 
     def test_for_each(self):
@@ -465,7 +474,7 @@ class TestChain(unittest.TestCase):
 
         def f(x):
             res.append(x)
-        Chain(xrange(3)).for_each(f)
+        Chain(range(3)).for_each(f)
         self.assertEqual(res, [0, 1, 2])
 
     def test_for_each_error(self):
@@ -481,12 +490,12 @@ class TestChain(unittest.TestCase):
                 raise e
             res.append(x)
 
-        Chain(xrange(3)).on_error(err_f).for_each(f)
+        Chain(range(3)).on_error(err_f).for_each(f)
         self.assertEqual(res, [0, 2])
 
     # Multiple Chain operations
     def test_copy(self):
-        a = Chain(xrange(3))
+        a = Chain(range(3))
         b = a.copy()
         a.map(lambda x: 2*x)
 
@@ -494,7 +503,7 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(b), [0, 1, 2])
 
     def test_copy_after_map(self):
-        a = Chain(xrange(3)).map(lambda x: 2*x)
+        a = Chain(range(3)).map(lambda x: 2*x)
         b = a.copy()
         a.map(lambda x: 3*x)
 
@@ -502,8 +511,8 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(b), [0, 2, 4])
 
     def test_join_on_key(self):
-        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
-        b = Chain(xrange(4)).map(lambda x: {'a': x, 'c': 'y%d' % x})
+        a = Chain(range(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(range(4)).map(lambda x: {'a': x, 'c': 'y%d' % x})
         a.join_on_key('a', b)
         desired_result = [
             {'a': 0, 'b': 'z0', 'c': 'y0'},
@@ -514,8 +523,8 @@ class TestChain(unittest.TestCase):
         self.assertEqual(list(a), desired_result)
 
     def test_join_on_key_phased(self):
-        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
-        b = Chain(xrange(4)).map(lambda x: {'a': 3-x, 'c': 'y%d' % x})
+        a = Chain(range(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(range(4)).map(lambda x: {'a': 3-x, 'c': 'y%d' % x})
         a.join_on_key('a', b)
         desired_result = [
             {'a': 0, 'b': 'z0', 'c': 'y3'},
@@ -527,8 +536,8 @@ class TestChain(unittest.TestCase):
         self.assertEqual(actual_result, desired_result)
 
     def test_join_on_key_offset(self):
-        a = Chain(xrange(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
-        b = Chain(xrange(2, 6)).map(lambda x: {'a': x, 'c': 'y%d' % x})
+        a = Chain(range(4)).map(lambda x: {'a': x, 'b': 'z%d' % x})
+        b = Chain(range(2, 6)).map(lambda x: {'a': x, 'c': 'y%d' % x})
         a.join_on_key('a', b)
         desired_result = [
             {'a': 2, 'b': 'z2', 'c': 'y2'},

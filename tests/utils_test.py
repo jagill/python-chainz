@@ -3,6 +3,7 @@ import unittest
 import json
 import csv
 import tempfile
+from six.moves import range
 from chainz import Chain, utils
 
 base_dir = os.path.dirname(__file__)
@@ -15,7 +16,7 @@ class TestChain(unittest.TestCase):
         def accumulate(count):
             l.append(count)
 
-        Chain(xrange(4))\
+        Chain(range(4))\
             .transform(utils.counter(accumulate))\
             .filter(lambda x: x % 2 == 0)\
             .transform(utils.counter(accumulate))\
