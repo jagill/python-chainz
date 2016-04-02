@@ -1,10 +1,10 @@
 from setuptools import setup
-import pypandoc
 
-long_description = pypandoc.convert('README.md', 'rst')
+with open('README.rst', 'r') as f:
+    long_description = f.read()
 
 setup(name='chainz',
-      version='0.13',
+      version='0.14',
       description='Lightweight chaining functional methods for iterables',
       long_description=long_description,
       keywords='iterable generators functional map filter reduce',
