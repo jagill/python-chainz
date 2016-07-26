@@ -1,14 +1,12 @@
 from setuptools import setup
 
-
-def readme():
-    with open('README.md') as f:
-        return f.read()
+with open('README.rst', 'r') as f:
+    long_description = f.read()
 
 setup(name='chainz',
-      version='0.11.1',
+      version='0.15',
       description='Lightweight chaining functional methods for iterables',
-      long_description=readme(),
+      long_description=long_description,
       keywords='iterable generators functional map filter reduce',
       url='http://github.com/jagill/python-chainz',
       author='James Gill',
