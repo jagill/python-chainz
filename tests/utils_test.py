@@ -10,6 +10,13 @@ base_dir = os.path.dirname(__file__)
 
 
 class TestChain(unittest.TestCase):
+    def test_call_repeatedly(self):
+        import random
+        repeater = utils.call_repeatedly(random.random)
+        x1 = next(repeater)
+        x2 = next(repeater)
+        self.assertNotEqual(x1, x2)
+
     def test_counter(self):
         l = []
 

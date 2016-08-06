@@ -6,6 +6,14 @@ These help with common tasks like reading a file, searching a directory, etc.
 import codecs
 
 
+def call_repeatedly(f, **kwargs):
+    """Make a generator that calls f repeatedly, yielding the result.
+
+    Supplied kwargs will be passed to f."""
+    while True:
+        yield f(**kwargs)
+
+
 def counter(callback):
     """Will count the items that pass by, returning the count to the callback.
 
