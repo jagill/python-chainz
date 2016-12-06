@@ -142,14 +142,14 @@ class TestChain(unittest.TestCase):
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
 
-    def test_write_csv_dict_file(self):
+    def test_write_csv_file(self):
         # TODO: Do tempfile stuff
         data = [
-            ('a', 1, 'abc'),
-            ('a', 2, 'def'),
+            ['a', '1', 'abc'],
+            ['a', '2', 'def'],
         ]
         tempfilepath = tempfile.mktemp()
-        transform = utils.write_csv_dict_file(tempfilepath)
+        transform = utils.write_csv_file(tempfilepath)
         result = list(transform(data))
         self.assertEqual(result, data)
         with open(tempfilepath, 'r') as temp_f:

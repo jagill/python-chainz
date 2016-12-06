@@ -73,6 +73,8 @@ def read_csv_dict_file(filepath, fieldnames=None, dialect=None):
 
     This uses csv.DictReader, so the file should be in a form appropriate to
     that. The fieldnames and dialect arguments are supplied to the csv reader.
+    Note this means that if fieldnames is not supplied, the reader will read
+    the first line and use that as fieldnames.
     """
     import csv
     with codecs.open(filepath, 'r', encoding='utf-8') as f:
@@ -137,6 +139,31 @@ def write_jsonl_file(filepath, append=False):
                 yield x
 
     return write_json_lines_to_filepath
+
+
+def write_csv_file(filepath, fieldnames=None, dialect=None, append=False):
+    """A transform that writes incoming tuples into a csv file.
+
+    If fieldnames is supplied, it will print them as the first line.
+    The dialect argument is supplied to the csv writer.
+    If append == True, append to the file instead of overwriting it.
+    """
+    import csv
+    mode = 'a' if append else 'w'
+    if append and fieldnames:
+        # It would be bad to include a header in the midst of a csv file.
+        raise Exception('Cannot specify both append and fieldnames.')
+
+    def write_csv_lines_to_filepath(in_iterator):
+        with codecs.open(filepath, mode, encoding='utf-8') as f:
+            writer = csv.writer(f, dialect=dialect)
+            if fieldnames:
+                writer.writerow(fieldnames)
+            for x in in_iterator:
+                writer.writerow(x)
+                yield x
+
+    return write_csv_lines_to_filepath
 
 
 def write_csv_dict_file(filepath, fieldnames, include_header=True, dialect=None, append=False):
