@@ -4,7 +4,7 @@ with open('README.rst', 'r') as f:
     long_description = f.read()
 
 setup(name='chainz',
-      version='0.14',
+      version='0.15',
       description='Lightweight chaining functional methods for iterables',
       long_description=long_description,
       keywords='iterable generators functional map filter reduce',
