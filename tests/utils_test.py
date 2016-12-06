@@ -60,6 +60,15 @@ class TestChain(unittest.TestCase):
             {'a': '4', 'b': '5', 'c': '6'},
         ])
 
+    def test_read_csv_dict_file_fieldnames(self):
+        filename = os.path.join(base_dir, 'data', 'csvdat_nohead.csv')
+        fieldnames = ('a', 'b', 'c')
+        line_it = utils.read_csv_dict_file(filename, fieldnames)
+        self.assertEqual(list(line_it), [
+            {'a': '1', 'b': '2', 'c': '3'},
+            {'a': '4', 'b': '5', 'c': '6'},
+        ])
+
     def test_walk_files(self):
         files = []
         root_dir = os.path.join(base_dir, 'data')
@@ -130,6 +139,23 @@ class TestChain(unittest.TestCase):
         with open(tempfilepath, 'r') as temp_f:
             result_data = [json.loads(x) for x in temp_f]
             self.assertEqual(result_data, expected_data)
+        # FIXME This probably doesn't remove the file if the assertion fails.
+        os.remove(tempfilepath)
+
+    def test_write_csv_dict_file(self):
+        # TODO: Do tempfile stuff
+        data = [
+            ('a', 1, 'abc'),
+            ('a', 2, 'def'),
+        ]
+        tempfilepath = tempfile.mktemp()
+        transform = utils.write_csv_dict_file(tempfilepath)
+        result = list(transform(data))
+        self.assertEqual(result, data)
+        with open(tempfilepath, 'r') as temp_f:
+            reader = csv.reader(temp_f)
+            result_data = list(reader)
+            self.assertEqual(result_data, data)
         # FIXME This probably doesn't remove the file if the assertion fails.
         os.remove(tempfilepath)
 

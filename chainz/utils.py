@@ -68,15 +68,15 @@ def read_csv_file(filepath, dialect=None):
             yield obj
 
 
-def read_csv_dict_file(filepath, dialect=None):
+def read_csv_dict_file(filepath, fieldnames=None, dialect=None):
     """Iterates over a csv file, yielding each line as a dict.
 
     This uses csv.DictReader, so the file should be in a form appropriate to
-    that. The dialect argument is supplied to the csv reader.
+    that. The fieldnames and dialect arguments are supplied to the csv reader.
     """
     import csv
     with codecs.open(filepath, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f, dialect=dialect)
+        reader = csv.DictReader(f, fieldnames=fieldnames, dialect=dialect)
         for obj in reader:
             yield obj
 
