@@ -15,12 +15,8 @@ class TestChain(unittest.TestCase):
         it = iter(a)
         self.assertEqual(next(it), 0)
         self.assertEqual(next(it), 1)
-        try:
+        with self.assertRaises(StopIteration):
             next(it)
-        except StopIteration:
-            pass
-        else:
-            self.fail()
 
     def test_next(self):
         a = Chain(range(2))
